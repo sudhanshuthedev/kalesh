@@ -1,0 +1,45 @@
+import type { Metadata } from 'next';
+import { Poppins } from 'next/font/google';
+import './globals.css';
+import { AuthProvider } from '@/contexts/AuthContext';
+import Header from '@/components/Header';
+import MobileNav from '@/components/MobileNav';
+
+const poppins = Poppins({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-poppins',
+});
+
+export const metadata: Metadata = {
+  title: 'Kalesh - Watch Kaleshi Videos',
+  description: 'Watch and share Kaleshi videos - The ultimate video platform',
+  keywords: 'Kalesh, Kaleshi, videos, watch videos, share videos, video platform',
+  authors: [{ name: 'Kalesh' }],
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  themeColor: '#000000',
+  openGraph: {
+    title: 'Kalesh - Watch Kaleshi Videos',
+    description: 'Watch and share Kaleshi videos - The ultimate video platform',
+    type: 'website',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" className={poppins.variable}>
+      <body className="bg-black font-poppins antialiased">
+        <AuthProvider>
+          <Header />
+          <main className="w-full">{children}</main>
+          <MobileNav />
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}
+
