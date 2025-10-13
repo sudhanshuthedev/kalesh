@@ -30,7 +30,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   );
   const [likes, setLikes] = useState(video.likes || 0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(isActive);
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showMuteHint, setShowMuteHint] = useState(false);
   const [showMutedIcon, setShowMutedIcon] = useState(false);
@@ -69,11 +69,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     const videoElement = videoRef.current;
 
-    // Only show loading indicator for active video
+    // Only show loading indicator for active video, and only if not already loaded
     if (isActive) {
-      loadTimeoutRef.current = setTimeout(() => {
+      // If video is already ready (was preloaded), don't show loading
+      if (videoElement.readyState >= 3) {
         setIsLoading(false);
-      }, 5000);
+      } else {
+        loadTimeoutRef.current = setTimeout(() => {
+          setIsLoading(false);
+        }, 5000);
+      }
     } else {
       setIsLoading(false);
     }
@@ -86,11 +91,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           startLevel: 1,
           autoStartLoad: true,
           capLevelToPlayerSize: true,
-          maxBufferLength: isActive ? 30 : 10,
+          maxBufferLength: shouldPreload ? 20 : (isActive ? 30 : 5),
           maxMaxBufferLength: 600,
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
-          abrEwmaDefaultEstimate: 1000000,
+          abrEwmaDefaultEstimate: 1500000,
           lowLatencyMode: false,
           backBufferLength: 90,
           progressive: true,
@@ -118,6 +123,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             if (loadTimeoutRef.current) {
               clearTimeout(loadTimeoutRef.current);
             }
+            setIsLoading(false);
+          }
+        });
+
+        // Also track when buffering is happening for preloaded videos
+        hls.on(Hls.Events.BUFFER_APPENDING, () => {
+          // Video is actively buffering
+          if (shouldPreload && videoElement.readyState >= 3) {
+            // Preloaded video has enough data
             setIsLoading(false);
           }
         });
@@ -209,24 +223,26 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           }
         };
 
-        // Try to play immediately, or wait a bit if video isn't ready
-        if (video.readyState >= 2) {
+        // Wait for video to have enough data buffered (readyState 3 or 4)
+        if (video.readyState >= 3) {
           tryPlay();
         } else {
           checkReadyInterval = setInterval(() => {
-            if (video.readyState >= 2) {
+            // Check if we have enough data to play smoothly
+            if (video.readyState >= 3) {
               if (checkReadyInterval) clearInterval(checkReadyInterval);
               tryPlay();
             }
-          }, 100);
+          }, 50);
           
-          // Timeout after 3 seconds
+          // Timeout after 5 seconds max
           playTimeout = setTimeout(() => {
             if (checkReadyInterval) clearInterval(checkReadyInterval);
-            if (!isPlaying) {
+            // Even if not fully ready, try to play if we have any data
+            if (!isPlaying && video.readyState >= 2) {
               tryPlay();
             }
-          }, 3000);
+          }, 5000);
         }
       } else {
         videoRef.current.pause();
@@ -410,12 +426,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   return (
     <div ref={containerRef} className="relative w-full h-full snap-start snap-always bg-black overflow-hidden">
       {}
+      {video.thumbnail_url && isLoading && isActive && (
+        <div 
+          className="absolute inset-0 z-10"
+          style={{
+            backgroundImage: `url(${video.thumbnail_url})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+      )}
+
+      {}
       <video
         ref={videoRef}
         className="w-full h-full object-contain"
         loop
         playsInline
         muted
+        onLoadedData={() => {
+          if (isLoading) {
+            setIsLoading(false);
+          }
+        }}
+        onCanPlay={() => {
+          if (isLoading) {
+            setIsLoading(false);
+          }
+        }}
         onMouseDown={handlePressStart}
         onMouseUp={handlePressEnd}
         onMouseLeave={() => {
@@ -431,8 +470,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       />
 
       {}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black z-20">
+      {isLoading && isActive && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-20">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -442,7 +481,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
-      <div className="md:hidden absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none z-10" />
 
       {}
       {showMuteHint && isPlaying && (

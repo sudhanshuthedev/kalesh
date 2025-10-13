@@ -88,7 +88,7 @@ export default function Home() {
           key={video.id}
           video={video}
           isActive={index === activeVideoIndex}
-          shouldPreload={index === activeVideoIndex + 1}
+          shouldPreload={index === activeVideoIndex + 1 || index === activeVideoIndex + 2}
           onInteraction={() => loadVideos(1)}
         />
       ))}
