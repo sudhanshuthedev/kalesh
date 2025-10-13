@@ -102,7 +102,7 @@ export default function SavedPage() {
     >
       {videos.map((video, index) => (
         <VideoPlayer
-          key={video.id}
+          key={`video-${video.id}`}
           video={video}
           isActive={index === activeVideoIndex}
           shouldPreload={index === activeVideoIndex + 1 || index === activeVideoIndex + 2}

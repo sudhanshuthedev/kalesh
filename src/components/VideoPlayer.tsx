@@ -69,6 +69,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     const videoElement = videoRef.current;
 
+    // If HLS is already loaded for this video, just update loading state
+    if (hlsRef.current && hlsRef.current.media === videoElement) {
+      if (isActive) {
+        if (videoElement.readyState >= 3) {
+          setIsLoading(false);
+        } else {
+          loadTimeoutRef.current = setTimeout(() => {
+            setIsLoading(false);
+          }, 5000);
+        }
+      } else {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     // Only show loading indicator for active video, and only if not already loaded
     if (isActive) {
       // If video is already ready (was preloaded), don't show loading
@@ -178,12 +194,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       if (loadTimeoutRef.current) {
         clearTimeout(loadTimeoutRef.current);
       }
+      // Don't destroy HLS here - it's already checked above if it should be reused
+    };
+  }, [isActive, shouldPreload, video.id, video.playlist_url, video.video_url]);
+
+  // Cleanup HLS when video ID changes or component unmounts
+  useEffect(() => {
+    return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
     };
-  }, [isActive, shouldPreload, video.id, video.playlist_url, video.video_url]);
+  }, [video.id]);
 
   useEffect(() => {
     let checkReadyInterval: NodeJS.Timeout | null = null;
