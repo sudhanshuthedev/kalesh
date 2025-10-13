@@ -21,14 +21,16 @@ export default function Home() {
   const loadVideos = async (pageNum = 1) => {
     try {
       setIsLoading(true);
-      const response = await feedAPI.getTrending(pageNum, 20);
+      // Load fewer videos initially for faster page load (5 instead of 20)
+      const pageSize = pageNum === 1 ? 5 : 10;
+      const response = await feedAPI.getTrending(pageNum, pageSize);
       if (response.status === 'success' && response.data?.videos) {
         if (pageNum === 1) {
           setVideos(response.data.videos);
         } else {
           setVideos((prev) => [...prev, ...response.data.videos]);
         }
-        setHasMore(response.data.videos.length === 20);
+        setHasMore(response.data.videos.length === pageSize);
       }
     } catch (error) {
       console.error('Failed to load videos:', error);
@@ -48,7 +50,8 @@ export default function Home() {
       setActiveVideoIndex(newIndex);
     }
 
-    if (scrollHeight - scrollTop - clientHeight < 1000 && !isLoading && hasMore) {
+    // Load more videos when user is 2 videos away from the end
+    if (scrollHeight - scrollTop - clientHeight < clientHeight * 2 && !isLoading && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
       loadVideos(nextPage);

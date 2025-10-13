@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -35,6 +35,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
   const [showMutedIcon, setShowMutedIcon] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
@@ -48,6 +52,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
   }, []);
 
   useEffect(() => {
+    // Only initialize video when it's active - prevents all videos loading at once
+    if (!isActive || hasInitialized) {
+      return;
+    }
 
     let videoUrl = video.playlist_url || video.video_url;
 
@@ -60,6 +68,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
     }
 
     const videoElement = videoRef.current;
+    setHasInitialized(true);
 
     loadTimeoutRef.current = setTimeout(() => {
       setIsLoading(false);
@@ -153,7 +162,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
         hlsRef.current = null;
       }
     };
-  }, [video.id, video.playlist_url, video.video_url]);
+  }, [isActive, video.id, video.playlist_url, video.video_url, hasInitialized]);
 
   useEffect(() => {
     if (videoRef.current && !isLoading) {
@@ -308,8 +317,42 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
     setIsLongPress(false);
   };
 
+  const toggleFullscreen = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!containerRef.current) return;
+
+    try {
+      if (!isFullscreen) {
+        if (containerRef.current.requestFullscreen) {
+          await containerRef.current.requestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   return (
-    <div className="relative w-full h-full snap-start snap-always bg-black overflow-hidden">
+    <div ref={containerRef} className="relative w-full h-full snap-start snap-always bg-black overflow-hidden">
       {}
       <video
         ref={videoRef}
@@ -327,7 +370,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
         }}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        preload="auto"
+        preload={isActive ? "auto" : "none"}
         crossOrigin="anonymous"
       />
 
@@ -370,59 +413,84 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
       )}
 
       {}
-      <div className="absolute bottom-20 md:bottom-8 left-0 right-20 p-4 md:p-6 z-20 pointer-events-none">
-        <div className="max-w-md">
-          <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-2 pointer-events-auto">
-            <div className="flex items-center gap-2">
-              <IoPersonCircleOutline size={32} className="text-white" />
-              <span className="text-white font-poppins font-semibold">
+      <div className="absolute bottom-24 md:bottom-8 left-4 right-24 md:right-28 md:p-6 z-20 pointer-events-none">
+        <div className="max-w-md md:max-w-xl">
+          <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 pointer-events-auto">
+            <div className="flex items-center gap-1.5">
+              <IoPersonCircleOutline size={24} className="text-white md:w-7 md:h-7" />
+              <span className="text-white font-poppins font-semibold text-xs md:text-sm">
                 @{video.uploader_username}
               </span>
             </div>
           </Link>
-          <h3 className="text-white font-poppins text-base md:text-lg font-semibold mb-1">
+          <h3 className={`text-white font-poppins text-xs md:text-base font-semibold mb-0.5 md:mb-1 ${!showFullDescription ? 'line-clamp-1' : ''}`}>
             {video.title}
           </h3>
           {video.description && (
-            <p className="text-white text-xs md:text-sm font-poppins opacity-90 line-clamp-2">
-              {video.description}
-            </p>
+            <div className="pointer-events-auto">
+              <p className={`text-white text-[11px] md:text-sm font-poppins opacity-90 leading-tight md:leading-normal ${!showFullDescription ? 'line-clamp-2' : ''}`}>
+                {video.description}
+              </p>
+              {(video.description.length > 100 || video.title.length > 50) && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowFullDescription(!showFullDescription);
+                  }}
+                  className="text-white text-[10px] md:text-xs font-poppins font-semibold mt-0.5 md:mt-1 opacity-75 hover:opacity-100 active:scale-95 transition-all"
+                >
+                  {showFullDescription ? 'Show less' : 'Show more'}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
 
       {}
-      <div className="absolute right-3 md:right-6 bottom-32 md:bottom-8 flex flex-col gap-5 z-30">
+      <div className="absolute right-3 md:right-6 bottom-36 md:bottom-8 flex flex-col gap-3 md:gap-4 z-30">
         <button
           onClick={handleLike}
-          className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+          className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
         >
           {isLiked ? (
-            <IoHeartSharp size={36} className="text-red-500" />
+            <IoHeartSharp size={32} className="text-red-500 md:w-9 md:h-9" />
           ) : (
-            <IoHeartOutline size={36} className="text-white" />
+            <IoHeartOutline size={32} className="text-white md:w-9 md:h-9" />
           )}
-          <span className="text-white text-xs font-poppins font-bold">
+          <span className="text-white text-[10px] md:text-xs font-poppins font-bold">
             {likes}
           </span>
         </button>
 
         <button
           onClick={handleSave}
-          className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+          className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
         >
           {isSaved ? (
-            <IoBookmarkSharp size={32} className="text-yellow-400" />
+            <IoBookmarkSharp size={28} className="text-yellow-400 md:w-8 md:h-8" />
           ) : (
-            <IoBookmarkOutline size={32} className="text-white" />
+            <IoBookmarkOutline size={28} className="text-white md:w-8 md:h-8" />
           )}
         </button>
 
         <button
           onClick={handleShare}
-          className="flex flex-col items-center gap-1 active:scale-90 transition-transform"
+          className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
         >
-          <IoShareSocialSharp size={32} className="text-white" />
+          <IoShareSocialSharp size={28} className="text-white md:w-8 md:h-8" />
+        </button>
+
+        <button
+          onClick={toggleFullscreen}
+          className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
+        >
+          {isFullscreen ? (
+            <IoContractOutline size={28} className="text-white md:w-8 md:h-8" />
+          ) : (
+            <IoExpandOutline size={28} className="text-white md:w-8 md:h-8" />
+          )}
         </button>
       </div>
     </div>
