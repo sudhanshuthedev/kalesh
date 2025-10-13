@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ModalProvider } from '@/contexts/ModalContext';
 import Header from '@/components/Header';
 import MobileNav from '@/components/MobileNav';
 
@@ -33,11 +34,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="bg-black font-poppins antialiased">
-        <AuthProvider>
-          <Header />
-          <main className="w-full">{children}</main>
-          <MobileNav />
-        </AuthProvider>
+        <ModalProvider>
+          <AuthProvider>
+            <Header />
+            <main className="w-full">{children}</main>
+            <MobileNav />
+          </AuthProvider>
+        </ModalProvider>
       </body>
     </html>
   );

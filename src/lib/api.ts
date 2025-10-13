@@ -24,11 +24,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
 
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/';
-      }
+      console.warn('API request failed with 401 - token may be expired');
     }
     return Promise.reject(error);
   }
@@ -122,6 +118,33 @@ export const feedAPI = {
     } catch (error: any) {
       return { status: 'success', data: { videos: [] }, message: 'No videos available' };
     }
+  },
+};
+
+export const commentAPI = {
+  getVideoComments: async (videoId: string, page = 1, pageSize = 20) => {
+    const response = await api.get(`/comments/videos/${videoId}?page=${page}&page_size=${pageSize}`);
+    return response.data;
+  },
+  createComment: async (videoId: string, text: string) => {
+    const response = await api.post(`/comments/videos/${videoId}`, { text });
+    return response.data;
+  },
+  replyToComment: async (commentId: string, text: string) => {
+    const response = await api.post(`/comments/${commentId}/reply`, { text });
+    return response.data;
+  },
+  likeComment: async (commentId: string) => {
+    const response = await api.post(`/comments/${commentId}/like`);
+    return response.data;
+  },
+  deleteComment: async (commentId: string) => {
+    const response = await api.delete(`/comments/${commentId}`);
+    return response.data;
+  },
+  reportComment: async (commentId: string, reason: string, details?: string) => {
+    const response = await api.post(`/comments/${commentId}/report`, { reason, details });
+    return response.data;
   },
 };
 

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModal } from '@/contexts/ModalContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose } from 'react-icons/io5';
 
@@ -16,6 +17,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, register } = useAuth();
+  const { addModal, removeModal } = useModal();
+
+  useEffect(() => {
+    addModal('auth-modal');
+
+    return () => {
+      removeModal('auth-modal');
+    };
+  }, [addModal, removeModal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

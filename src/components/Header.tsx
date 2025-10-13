@@ -7,11 +7,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
 import { motion } from 'framer-motion';
 import { IoHomeSharp, IoBookmarkSharp, IoPersonSharp, IoAddCircle, IoLogOutOutline } from 'react-icons/io5';
+import { usePathname } from 'next/navigation';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const pathname = usePathname();
+
+  const isVideoPage = pathname === '/' || pathname === '/saved' || pathname?.startsWith('/?video=');
+  const hideLogo = isVideoPage;
 
   React.useEffect(() => {
     const handleClickOutside = () => {
@@ -36,17 +41,19 @@ const Header = () => {
       >
         {}
         <Link href="/" className="flex items-center">
-          <div className="h-8 md:h-9 w-auto relative">
-            <Image
-              src="/logo.png"
-              alt="Kalesh"
-              width={100}
-              height={36}
-              className="object-contain h-full w-auto"
-              priority
-              unoptimized
-            />
-          </div>
+          {!hideLogo && (
+            <div className="h-8 md:h-9 w-auto relative">
+              <Image
+                src="/logo.png"
+                alt="Kalesh"
+                width={100}
+                height={36}
+                className="object-contain h-full w-auto"
+                priority
+                unoptimized
+              />
+            </div>
+          )}
         </Link>
 
         {}
@@ -95,7 +102,7 @@ const Header = () => {
           ) : (
              <button
                onClick={() => setShowAuthModal(true)}
-               className="px-3 md:px-4 py-1.5 md:py-2 text-white font-poppins text-xs md:text-sm transition-all"
+               className="px-3 md:px-4 py-1.5 md:py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded text-white font-poppins text-xs md:text-sm transition-all hover:bg-white/20"
              >
                Login
              </button>

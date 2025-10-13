@@ -3,14 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { IoHomeSharp, IoHome, IoBookmarkSharp, IoBookmark, IoAddCircle, IoPersonSharp, IoPersonOutline } from 'react-icons/io5';
+import { IoHomeSharp, IoHome, IoBookmarkSharp, IoBookmark, IoAdd, IoPersonSharp, IoPersonOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
+import { useModal } from '@/contexts/ModalContext';
 import AuthModal from './AuthModal';
 
 const MobileNav = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const { isAnyModalOpen } = useModal();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleUploadClick = (e: React.MouseEvent) => {
@@ -36,7 +38,7 @@ const MobileNav = () => {
 
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around z-[100]" style={{ background: 'transparent' }}>
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around z-[50] transition-opacity duration-300 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ background: 'transparent' }}>
         <Link
           href="/"
           className={`flex flex-col items-center justify-center gap-0.5 ${
@@ -61,9 +63,12 @@ const MobileNav = () => {
         <Link
           href="/upload"
           onClick={handleUploadClick}
-          className="flex flex-col items-center justify-center text-white -mt-2"
+          className={`flex flex-col items-center justify-center gap-0.5 ${
+            pathname === '/upload' ? 'text-white' : 'text-gray-500'
+          }`}
         >
-          <IoAddCircle size={40} />
+          <IoAdd size={26} />
+          <span className="text-[10px] font-poppins">Upload</span>
         </Link>
 
         <Link

@@ -2,12 +2,14 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
+import Image from 'next/image';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
+import CommentsModal from './CommentsModal';
 
 interface VideoPlayerProps {
   video: Video;
@@ -38,6 +40,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [isLongPress, setIsLongPress] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,7 +56,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   }, []);
 
   useEffect(() => {
-    // Initialize video when it's active or should be preloaded (next video)
+
     if (!isActive && !shouldPreload) {
       return;
     }
@@ -69,7 +73,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     const videoElement = videoRef.current;
 
-    // If HLS is already loaded for this video, just update loading state
     if (hlsRef.current && hlsRef.current.media === videoElement) {
       if (isActive) {
         if (videoElement.readyState >= 3) {
@@ -85,9 +88,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       return;
     }
 
-    // Only show loading indicator for active video, and only if not already loaded
     if (isActive) {
-      // If video is already ready (was preloaded), don't show loading
+
       if (videoElement.readyState >= 3) {
         setIsLoading(false);
       } else {
@@ -143,11 +145,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           }
         });
 
-        // Also track when buffering is happening for preloaded videos
         hls.on(Hls.Events.BUFFER_APPENDING, () => {
-          // Video is actively buffering
+
           if (shouldPreload && videoElement.readyState >= 3) {
-            // Preloaded video has enough data
+
             setIsLoading(false);
           }
         });
@@ -194,11 +195,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       if (loadTimeoutRef.current) {
         clearTimeout(loadTimeoutRef.current);
       }
-      // Don't destroy HLS here - it's already checked above if it should be reused
+
     };
   }, [isActive, shouldPreload, video.id, video.playlist_url, video.video_url]);
 
-  // Cleanup HLS when video ID changes or component unmounts
   useEffect(() => {
     return () => {
       if (hlsRef.current) {
@@ -216,7 +216,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       if (isActive) {
         const video = videoRef.current;
 
-        // Give HLS a moment to initialize if needed
         const tryPlay = () => {
           if (userHasInteracted) {
             video.muted = false;
@@ -246,22 +245,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           }
         };
 
-        // Wait for video to have enough data buffered (readyState 3 or 4)
         if (video.readyState >= 3) {
           tryPlay();
         } else {
           checkReadyInterval = setInterval(() => {
-            // Check if we have enough data to play smoothly
+
             if (video.readyState >= 3) {
               if (checkReadyInterval) clearInterval(checkReadyInterval);
               tryPlay();
             }
           }, 50);
-          
-          // Timeout after 5 seconds max
+
           playTimeout = setTimeout(() => {
             if (checkReadyInterval) clearInterval(checkReadyInterval);
-            // Even if not fully ready, try to play if we have any data
+
             if (!isPlaying && video.readyState >= 2) {
               tryPlay();
             }
@@ -401,7 +398,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     try {
       if (!isFullscreen) {
-        // Request fullscreen on the document element to make entire screen fullscreen
+
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
           await elem.requestFullscreen();
@@ -437,7 +434,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-    
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -450,7 +447,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     <div ref={containerRef} className="relative w-full h-full snap-start snap-always bg-black overflow-hidden">
       {}
       {video.thumbnail_url && isLoading && isActive && (
-        <div 
+        <div
           className="absolute inset-0 z-10"
           style={{
             backgroundImage: `url(${video.thumbnail_url})`,
@@ -511,7 +508,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 pointer-events-none"
+          className="fixed top-16 right-4 md:top-20 md:right-6 z-30 pointer-events-none"
         >
           <IoVolumeMuteOutline size={24} className="text-white drop-shadow-2xl" />
         </motion.div>
@@ -530,8 +527,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
+      {}
       {isActive && (
-        <div className="fixed md:absolute bottom-20 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-20 pointer-events-none">
+        <div className="absolute top-4 left-4 z-30 pointer-events-none">
+          <div className="h-8 w-auto relative">
+            <Image
+              src="/logo.png"
+              alt="Kalesh"
+              width={80}
+              height={28}
+              className="object-contain h-full w-auto opacity-80"
+              priority
+              unoptimized
+            />
+          </div>
+        </div>
+      )}
+
+      {isActive && (
+        <div className="fixed md:absolute bottom-24 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-20 pointer-events-none">
           <div className="max-w-md md:max-w-xl">
             <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
               <div className="flex items-center gap-1.5">
@@ -568,8 +582,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
-      {isActive && (
-        <div className="fixed md:absolute right-3 md:right-6 bottom-28 md:bottom-8 flex flex-col gap-3 md:gap-4 z-30">
+      {isActive && !showCommentsModal && (
+        <div className="fixed md:absolute right-3 md:right-6 bottom-40 md:bottom-8 flex flex-col gap-5 md:gap-6 z-30">
           <button
             onClick={handleLike}
             className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
@@ -582,6 +596,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             <span className="text-white text-[10px] md:text-xs font-poppins font-bold">
               {likes}
             </span>
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowCommentsModal(true);
+            }}
+            className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
+          >
+            <IoChatbubbleOutline size={28} className="text-white md:w-8 md:h-8" />
           </button>
 
           <button
@@ -603,6 +628,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           </button>
 
           <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!isAuthenticated) {
+                alert('Please login to report videos');
+                return;
+              }
+              setShowReportModal(true);
+            }}
+            className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
+          >
+            <IoFlagOutline size={28} className="text-white md:w-8 md:h-8" />
+          </button>
+
+          <button
             onClick={toggleFullscreen}
             className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
           >
@@ -614,7 +654,130 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           </button>
         </div>
       )}
+
+      {}
+      <CommentsModal
+        videoId={video.id}
+        isOpen={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
+      />
+
+      {}
+      {showReportModal && (
+        <ReportModal
+          videoId={video.id}
+          onClose={() => setShowReportModal(false)}
+        />
+      )}
     </div>
+  );
+};
+
+interface ReportModalProps {
+  videoId: string;
+  onClose: () => void;
+}
+
+const ReportModal: React.FC<ReportModalProps> = ({ videoId, onClose }) => {
+  const [reason, setReason] = useState('');
+  const [details, setDetails] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const reportReasons = [
+    'Spam',
+    'Harassment',
+    'Hate Speech',
+    'Violence',
+    'Nudity or Sexual Content',
+    'False Information',
+    'Other'
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reason) return;
+
+    try {
+      setIsSubmitting(true);
+      await interactionAPI.report(videoId, reason, details || undefined);
+      alert('Report submitted successfully');
+      onClose();
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      alert('Failed to submit report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-app-gray rounded-lg p-6 max-w-md w-full"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-poppins font-semibold text-white text-lg">Report Video</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <IoClose size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="font-poppins text-sm text-gray-300 mb-2 block">Reason *</label>
+            <select
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-white/20"
+              required
+            >
+              <option value="">Select a reason</option>
+              {reportReasons.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-6">
+            <label className="font-poppins text-sm text-gray-300 mb-2 block">Additional details (optional)</label>
+            <textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="Provide more information..."
+              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[100px] resize-none"
+              maxLength={1000}
+            />
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-700 text-white font-poppins py-2 rounded hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!reason || isSubmitting}
+              className="flex-1 bg-red-500 text-white font-poppins py-2 rounded hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Report'}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
   );
 };
 

@@ -33,7 +33,7 @@ export default function SavedPage() {
   const loadVideos = async (pageNum = 1) => {
     try {
       setIsLoading(true);
-      // Load fewer videos initially for faster page load
+
       const pageSize = pageNum === 1 ? 5 : 10;
       const response = await feedAPI.getSaved(pageNum, pageSize);
       if (response.status === 'success' && response.data?.videos) {
@@ -59,8 +59,7 @@ export default function SavedPage() {
     const newIndex = Math.round(scrollTop / clientHeight);
     if (newIndex !== activeVideoIndex && newIndex < videos.length) {
       setActiveVideoIndex(newIndex);
-      
-      // Load more videos when user is on the 3rd last video
+
       if (newIndex >= videos.length - 3 && !isLoading && hasMore) {
         const nextPage = page + 1;
         setPage(nextPage);
