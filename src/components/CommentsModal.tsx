@@ -67,6 +67,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
 
     const tempComment: Comment = {
       id: `temp-${Date.now()}`,
+      video_id: videoId,
+      user_id: user?.id || '',
       text: newCommentText,
       username: user?.username || '',
       created_at: new Date().toISOString(),
