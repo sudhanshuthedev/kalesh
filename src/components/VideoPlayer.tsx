@@ -43,6 +43,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const interactionLayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
@@ -347,7 +348,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     }
   };
 
-  const handlePressStart = () => {
+  const handlePressStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a') || target.closest('nav')) {
+      return;
+    }
+
     setIsLongPress(false);
     pressTimer.current = setTimeout(() => {
       setIsLongPress(true);
@@ -359,7 +365,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     }, 500);
   };
 
-  const handlePressEnd = () => {
+  const handlePressEnd = (e: React.TouchEvent | React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a') || target.closest('nav')) {
+      return;
+    }
+
     if (pressTimer.current) {
       clearTimeout(pressTimer.current);
       pressTimer.current = null;
@@ -448,7 +459,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
       {video.thumbnail_url && isLoading && isActive && (
         <div
-          className="absolute inset-0 z-10"
+          className="absolute inset-0 z-10 pointer-events-none"
           style={{
             backgroundImage: `url(${video.thumbnail_url})`,
             backgroundSize: 'contain',
@@ -475,6 +486,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             setIsLoading(false);
           }
         }}
+        preload={isActive || shouldPreload ? "auto" : "none"}
+        crossOrigin="anonymous"
+      />
+
+      {}
+      <div
+        ref={interactionLayerRef}
+        className="absolute top-0 left-0 right-0 z-10"
+        style={{ bottom: '64px' }}
         onMouseDown={handlePressStart}
         onMouseUp={handlePressEnd}
         onMouseLeave={() => {
@@ -485,13 +505,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         }}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        preload={isActive || shouldPreload ? "auto" : "none"}
-        crossOrigin="anonymous"
       />
 
       {}
       {isLoading && isActive && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-20">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-[60] pointer-events-none">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -508,7 +526,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed top-16 right-4 md:top-20 md:right-6 z-30 pointer-events-none"
+          className="fixed top-16 right-4 md:top-20 md:right-6 z-[60] pointer-events-none"
         >
           <IoVolumeMuteOutline size={24} className="text-white drop-shadow-2xl" />
         </motion.div>
@@ -520,7 +538,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5 }}
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none"
         >
           <IoVolumeHighOutline size={60} className="text-white drop-shadow-2xl" />
         </motion.div>
@@ -529,7 +547,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
       {}
       {isActive && (
-        <div className="absolute top-4 left-4 z-30 pointer-events-none">
+        <div className="absolute top-4 left-4 z-[40] pointer-events-none">
           <div className="h-8 w-auto relative">
             <Image
               src="/logo.png"
@@ -545,7 +563,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {isActive && (
-        <div className="fixed md:absolute bottom-24 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-20 pointer-events-none">
+        <div className="fixed md:absolute bottom-24 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-[40] pointer-events-none">
           <div className="max-w-md md:max-w-xl">
             <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
               <div className="flex items-center gap-1.5">
@@ -583,7 +601,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
       {}
       {isActive && !showCommentsModal && (
-        <div className="fixed md:absolute right-3 md:right-6 bottom-40 md:bottom-8 flex flex-col gap-5 md:gap-6 z-30">
+        <div className="fixed md:absolute right-3 md:right-6 bottom-40 md:bottom-8 flex flex-col gap-5 md:gap-6 z-[40] pointer-events-auto">
           <button
             onClick={handleLike}
             className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
@@ -656,11 +674,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
-      <CommentsModal
-        videoId={video.id}
-        isOpen={showCommentsModal}
-        onClose={() => setShowCommentsModal(false)}
-      />
+      {showCommentsModal && (
+        <CommentsModal
+          videoId={video.id}
+          isOpen={showCommentsModal}
+          onClose={() => setShowCommentsModal(false)}
+        />
+      )}
 
       {}
       {showReportModal && (

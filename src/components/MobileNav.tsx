@@ -38,10 +38,10 @@ const MobileNav = () => {
 
   return (
     <>
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around z-[50] transition-opacity duration-300 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ background: 'transparent' }}>
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around z-[100] transition-opacity duration-300 pointer-events-auto ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ background: 'transparent' }}>
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center gap-0.5 ${
+          className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${
             pathname === '/' ? 'text-white' : 'text-gray-500'
           }`}
         >
@@ -52,7 +52,7 @@ const MobileNav = () => {
         <Link
           href="/saved"
           onClick={handleSavedClick}
-          className={`flex flex-col items-center justify-center gap-0.5 ${
+          className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${
             pathname === '/saved' ? 'text-white' : 'text-gray-500'
           }`}
         >
@@ -63,7 +63,7 @@ const MobileNav = () => {
         <Link
           href="/upload"
           onClick={handleUploadClick}
-          className={`flex flex-col items-center justify-center gap-0.5 ${
+          className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${
             pathname === '/upload' ? 'text-white' : 'text-gray-500'
           }`}
         >
@@ -74,7 +74,7 @@ const MobileNav = () => {
         <Link
           href={isAuthenticated && user?.username ? `/profile/${user.username}` : '#'}
           onClick={handleProfileClick}
-          className={`flex flex-col items-center justify-center gap-0.5 ${
+          className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${
             pathname.startsWith('/profile') ? 'text-white' : 'text-gray-500'
           }`}
         >

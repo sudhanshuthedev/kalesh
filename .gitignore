@@ -12,7 +12,7 @@
 
 # production
 /build
-
+p.js
 # misc
 .DS_Store
 *.pem
