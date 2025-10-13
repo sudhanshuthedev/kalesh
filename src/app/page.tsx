@@ -42,19 +42,18 @@ export default function Home() {
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollTop = container.scrollTop;
-    const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
 
     const newIndex = Math.round(scrollTop / clientHeight);
     if (newIndex !== activeVideoIndex && newIndex < videos.length) {
       setActiveVideoIndex(newIndex);
-    }
-
-    // Load more videos when user is 2 videos away from the end
-    if (scrollHeight - scrollTop - clientHeight < clientHeight * 2 && !isLoading && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadVideos(nextPage);
+      
+      // Load more videos when user is on the 3rd last video
+      if (newIndex >= videos.length - 3 && !isLoading && hasMore) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        loadVideos(nextPage);
+      }
     }
   };
 
@@ -89,6 +88,7 @@ export default function Home() {
           key={video.id}
           video={video}
           isActive={index === activeVideoIndex}
+          shouldPreload={index === activeVideoIndex + 1}
           onInteraction={() => loadVideos(1)}
         />
       ))}
