@@ -55,8 +55,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, onInteractio
       setIsLoading(false);
       return;
     }
-
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    if (typeof window !== 'undefined') {
       videoUrl = videoUrl.replace('https://cdn.tsuki.page/', '/cdn-proxy/');
     }
 
