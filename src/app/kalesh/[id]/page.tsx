@@ -84,8 +84,8 @@ export default function KaleshPage() {
     try {
       setIsLoading(true);
       const response = await videoAPI.getVideo(videoId);
-      if (response.status === 'success' && response.data) {
-        setVideo(response.data);
+      if (response.status === 'success' && response.data?.video) {
+        setVideo(response.data.video);
       } else {
         console.error('Video not found');
         router.push('/');
