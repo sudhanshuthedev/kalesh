@@ -362,7 +362,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     setTimeout(() => {
       setHearts((prev) => prev.filter((h) => h.id !== heartId));
-    }, 1500);
+    }, 1000);
   };
 
   const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
@@ -393,11 +393,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             tapX + (Math.random() - 0.5) * 60,
             tapY - 70 + (Math.random() - 0.5) * 30
           );
-        }, i * 80);
+        }, i * 50);
       }
 
       setShowBigHeart(true);
-      setTimeout(() => setShowBigHeart(false), 600);
+      setTimeout(() => setShowBigHeart(false), 400);
 
       if (!isLiked) {
         handleLike();
@@ -686,7 +686,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.3 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
           className="fixed z-[60] pointer-events-none -translate-x-1/2 -translate-y-1/2"
           style={{ left: `${bigHeartPosition.x}px`, top: `${bigHeartPosition.y}px` }}
         >
@@ -702,10 +702,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           animate={{
             opacity: [0, 1, 0],
             scale: [0, 1, 0.7],
-            y: -120,
+            y: -100,
             x: [(Math.random() - 0.5) * 30]
           }}
-          transition={{ duration: 1.5, ease: 'easeOut' }}
+          transition={{ duration: 1, ease: 'easeOut' }}
           className="fixed z-[60] pointer-events-none"
           style={{ left: `${heart.x}px`, top: `${heart.y}px` }}
         >
