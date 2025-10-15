@@ -6,6 +6,10 @@ import { authAPI } from '@/lib/api';
 interface User {
   id: string;
   username: string;
+  email?: string | null;
+  full_name?: string | null;
+  bio?: string | null;
+  profile_image_url?: string | null;
   created_at: string;
 }
 

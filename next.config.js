@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: false,
   images: {
-    domains: ['kalesh.onrender.com', 'cdn.tsuki.page'],
+    domains: ['kalesh.onrender.com', 'cdn.tsuki.page', 'cdn.fly0.tech'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -12,14 +12,6 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://kalesh.onrender.com',
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/cdn-proxy/:path*',
-        destination: 'https://cdn.tsuki.page/:path*',
-      },
-    ];
   },
   async headers() {
     return [

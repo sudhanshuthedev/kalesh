@@ -38,7 +38,13 @@ const MobileNav = () => {
 
   return (
     <>
-      <nav className={`md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around z-[100] transition-opacity duration-300 pointer-events-auto ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} style={{ background: 'transparent' }}>
+      <nav
+        className={`md:hidden fixed bottom-0 left-0 right-0 h-16 flex items-center justify-around transition-opacity duration-300 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto z-[100]'}`}
+        style={{
+          background: 'transparent',
+          zIndex: isAnyModalOpen ? -1 : 100
+        }}
+      >
         <Link
           href="/"
           className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${

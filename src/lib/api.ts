@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kalesh.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const api = axios.create({
   baseURL: API_URL,
@@ -47,6 +47,20 @@ export const authAPI = {
     const response = await api.get(`/users/profile/${username}`);
     return response.data;
   },
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/users/avatar/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+  updateProfile: async (data: { email?: string; full_name?: string; bio?: string }) => {
+    const response = await api.put('/users/profile', data);
+    return response.data;
+  },
 };
 
 export const videoAPI = {
@@ -60,6 +74,10 @@ export const videoAPI = {
   },
   getVideo: async (videoId: string) => {
     const response = await api.get(`/videos/${videoId}`);
+    return response.data;
+  },
+  getProcessingStatus: async (videoId: string) => {
+    const response = await api.get(`/videos/${videoId}/status`);
     return response.data;
   },
   deleteVideo: async (videoId: string) => {
@@ -130,8 +148,8 @@ export const commentAPI = {
     const response = await api.post(`/comments/videos/${videoId}`, { text });
     return response.data;
   },
-  replyToComment: async (commentId: string, text: string) => {
-    const response = await api.post(`/comments/${commentId}/reply`, { text });
+  replyToComment: async (videoId: string, commentId: string, text: string) => {
+    const response = await api.post(`/comments/videos/${videoId}/${commentId}/reply`, { text });
     return response.data;
   },
   likeComment: async (commentId: string) => {

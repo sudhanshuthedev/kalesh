@@ -18,6 +18,17 @@ export default function Home() {
     loadVideos();
   }, []);
 
+  useEffect(() => {
+    if (videos.length > 0 && videos[activeVideoIndex]) {
+      const activeVideo = videos[activeVideoIndex];
+      document.title = `${activeVideo.title} | Kalesh`;
+    }
+
+    return () => {
+      document.title = 'Kalesh - Watch Kaleshi Videos';
+    };
+  }, [activeVideoIndex, videos]);
+
   const loadVideos = async (pageNum = 1) => {
     try {
       setIsLoading(true);
@@ -88,7 +99,6 @@ export default function Home() {
           video={video}
           isActive={index === activeVideoIndex}
           shouldPreload={index === activeVideoIndex + 1 || index === activeVideoIndex + 2}
-          onInteraction={() => loadVideos(1)}
         />
       ))}
       {isLoading && videos.length > 0 && (

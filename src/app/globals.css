@@ -62,3 +62,20 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/* Mobile keyboard fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS specific fixes */
+  input[type="text"]:focus,
+  textarea:focus {
+    font-size: 16px !important;
+  }
+}
+
+/* Prevent zoom on input focus on mobile */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  textarea {
+    font-size: 16px;
+  }
+}
+

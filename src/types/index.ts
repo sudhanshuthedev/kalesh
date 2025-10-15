@@ -1,6 +1,10 @@
 export interface User {
   id: string;
   username: string;
+  email?: string | null;
+  full_name?: string | null;
+  bio?: string | null;
+  profile_image_url?: string | null;
   created_at: string;
 }
 
@@ -15,6 +19,9 @@ export interface UserRegister {
 }
 
 export interface UserInteraction {
+  liked?: boolean;
+  disliked?: boolean;
+  saved?: boolean;
   is_liked?: boolean;
   is_disliked?: boolean;
   is_saved?: boolean;
@@ -36,6 +43,7 @@ export interface Video {
   saved_count?: number;
   created_at: string;
   tags?: string[];
+  processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
   is_liked?: boolean;
   is_disliked?: boolean;
   is_saved?: boolean;
@@ -48,11 +56,14 @@ export interface Comment {
   user_id: string;
   username: string;
   text: string;
+  parent_comment_id?: string | null;
   parent_id?: string | null;
   likes: number;
   is_liked?: boolean;
+  user_liked?: boolean;
   created_at: string;
   replies?: Comment[];
+  replies_count?: number;
   reply_count?: number;
 }
 

@@ -2,10 +2,9 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
-import Image from 'next/image';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -15,20 +14,19 @@ interface VideoPlayerProps {
   video: Video;
   isActive: boolean;
   shouldPreload?: boolean;
-  onInteraction?: () => void;
 }
 
 let userHasInteracted = false;
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreload = false, onInteraction }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreload = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const { isAuthenticated } = useAuth();
   const [isLiked, setIsLiked] = useState(
-    video.user_interaction?.is_liked || video.is_liked || false
+    video.user_interaction?.liked || video.user_interaction?.is_liked || video.is_liked || false
   );
   const [isSaved, setIsSaved] = useState(
-    video.user_interaction?.is_saved || video.is_saved || false
+    video.user_interaction?.saved || video.user_interaction?.is_saved || video.is_saved || false
   );
   const [likes, setLikes] = useState(video.likes || 0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,6 +40,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<HTMLDivElement>(null);
 
@@ -68,8 +67,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       setIsLoading(false);
       return;
     }
-    if (typeof window !== 'undefined') {
-      videoUrl = videoUrl.replace('https://cdn.tsuki.page/', '/cdn-proxy/');
+    if (typeof window !== 'undefined' && videoUrl.includes('cdn.fly0.tech')) {
+      videoUrl = videoUrl.replace('https://cdn.fly0.tech/', '/api/cdn-proxy/');
     }
 
     const videoElement = videoRef.current;
@@ -105,9 +104,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     if ((video.playlist_url || videoUrl.includes('.m3u8'))) {
       if (Hls.isSupported()) {
         const hls = new Hls({
-          debug: false,
+          debug: true,
           enableWorker: true,
-          startLevel: 1,
+          startLevel: -1,
           autoStartLoad: true,
           capLevelToPlayerSize: true,
           maxBufferLength: shouldPreload ? 20 : (isActive ? 30 : 5),
@@ -119,12 +118,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           backBufferLength: 90,
           progressive: true,
           xhrSetup: function (xhr: any, url: string) {
+
+            let requestUrl = url;
+            if (url.includes('cdn.fly0.tech')) {
+              requestUrl = url.replace('https://cdn.fly0.tech/', '/api/cdn-proxy/');
+            }
+            xhr.open('GET', requestUrl, true);
             xhr.withCredentials = false;
+            xhr.setRequestHeader('Accept', '*/*');
           },
         });
 
         hlsRef.current = hls;
 
+        console.log('Loading HLS video:', videoUrl);
         hls.loadSource(videoUrl);
         hls.attachMedia(videoElement);
 
@@ -155,18 +162,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS Error:', data);
           if (data.fatal) {
             if (loadTimeoutRef.current) {
               clearTimeout(loadTimeoutRef.current);
             }
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log('Network error, attempting recovery...');
                 hls.startLoad();
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log('Media error, attempting recovery...');
                 hls.recoverMediaError();
                 break;
               default:
+                console.error('Fatal error, destroying HLS instance:', data);
                 hls.destroy();
                 setIsLoading(false);
                 break;
@@ -292,7 +303,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       setIsLiked(newLikedState);
       setLikes((prev) => (newLikedState ? prev + 1 : prev - 1));
       await interactionAPI.like(video.id);
-      onInteraction?.();
     } catch (error) {
       setIsLiked(!isLiked);
       setLikes((prev) => (isLiked ? prev + 1 : prev - 1));
@@ -311,7 +321,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     try {
       setIsSaved(!isSaved);
       await interactionAPI.save(video.id);
-      onInteraction?.();
     } catch (error) {
       setIsSaved(!isSaved);
     }
@@ -321,7 +330,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     e.preventDefault();
     e.stopPropagation();
 
-    const shareUrl = `${window.location.origin}/?video=${video.id}`;
+    const shareUrl = `${window.location.origin}/kalesh/${video.id}`;
 
     if (navigator.share) {
       try {
@@ -454,8 +463,33 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+
+      if (showMoreMenu && !target.closest('.more-menu') && !target.closest('.more-menu-button')) {
+        setShowMoreMenu(false);
+      }
+    };
+
+    if (showMoreMenu) {
+      setTimeout(() => {
+        document.addEventListener('click', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+      }, 100);
+      return () => {
+        document.removeEventListener('click', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+      };
+    }
+  }, [showMoreMenu]);
+
   return (
-    <div ref={containerRef} className="relative w-full h-full snap-start snap-always bg-black overflow-hidden">
+    <div
+      ref={containerRef}
+      className="relative w-full h-full snap-start snap-always bg-black overflow-hidden"
+      style={{ pointerEvents: (showCommentsModal || showMoreMenu) ? 'none' : 'auto' }}
+    >
       {}
       {video.thumbnail_url && isLoading && isActive && (
         <div
@@ -491,21 +525,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       />
 
       {}
-      <div
-        ref={interactionLayerRef}
-        className="absolute top-0 left-0 right-0 z-10"
-        style={{ bottom: '64px' }}
-        onMouseDown={handlePressStart}
-        onMouseUp={handlePressEnd}
-        onMouseLeave={() => {
-          if (pressTimer.current) {
-            clearTimeout(pressTimer.current);
-            pressTimer.current = null;
-          }
-        }}
-        onTouchStart={handlePressStart}
-        onTouchEnd={handlePressEnd}
-      />
+      {!showCommentsModal && !showReportModal && !showMoreMenu && (
+        <div
+          ref={interactionLayerRef}
+          className="absolute left-0 right-0 z-10"
+          style={{ top: '56px', bottom: '64px' }}
+          onMouseDown={handlePressStart}
+          onMouseUp={handlePressEnd}
+          onMouseLeave={() => {
+            if (pressTimer.current) {
+              clearTimeout(pressTimer.current);
+              pressTimer.current = null;
+            }
+          }}
+          onTouchStart={handlePressStart}
+          onTouchEnd={handlePressEnd}
+        />
+      )}
 
       {}
       {isLoading && isActive && (
@@ -546,21 +582,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
       {}
       {}
-      {isActive && (
-        <div className="absolute top-4 left-4 z-[40] pointer-events-none">
-          <div className="h-8 w-auto relative">
-            <Image
-              src="/logo.png"
-              alt="Kalesh"
-              width={80}
-              height={28}
-              className="object-contain h-full w-auto opacity-80"
-              priority
-              unoptimized
-            />
-          </div>
-        </div>
-      )}
 
       {isActive && (
         <div className="fixed md:absolute bottom-24 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-[40] pointer-events-none">
@@ -573,28 +594,49 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
                 </span>
               </div>
             </Link>
-            <h3 className={`text-white font-poppins text-sm md:text-base font-semibold mb-1 md:mb-1 ${!showFullDescription ? 'line-clamp-1' : ''}`}>
-              {video.title}
-            </h3>
-            {video.description && (
-              <div className="pointer-events-auto">
-                <p className={`text-white text-[13px] md:text-sm font-poppins opacity-90 leading-snug md:leading-normal ${!showFullDescription ? 'line-clamp-2' : ''}`}>
-                  {video.description}
-                </p>
-                {(video.description.length > 100 || video.title.length > 50) && (
-                  <button
+            <div>
+              <h3
+                className={`text-white font-poppins text-sm md:text-base font-semibold mb-1 md:mb-1 ${!showFullDescription ? 'line-clamp-1' : ''} pointer-events-auto cursor-pointer`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const shouldShowExpand = video.title.length > 50 || (video.description && video.description.length > 100);
+                  if (shouldShowExpand) {
+                    setShowFullDescription(!showFullDescription);
+                  }
+                }}
+              >
+                {video.title}
+              </h3>
+              {video.description && (
+                <div className="pointer-events-auto">
+                  <p
+                    className={`text-white text-[13px] md:text-sm font-poppins opacity-90 leading-snug md:leading-normal ${!showFullDescription ? 'line-clamp-2' : ''} cursor-pointer`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setShowFullDescription(!showFullDescription);
+                      if (video.description && (video.description.length > 100 || video.title.length > 50)) {
+                        setShowFullDescription(!showFullDescription);
+                      }
                     }}
-                    className="text-white text-xs md:text-xs font-poppins font-semibold mt-1 md:mt-1 opacity-75 hover:opacity-100 active:scale-95 transition-all"
                   >
-                    {showFullDescription ? 'Show less' : 'Show more'}
-                  </button>
-                )}
-              </div>
-            )}
+                    {video.description}
+                  </p>
+                  {(video.description.length > 100 || video.title.length > 50) && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowFullDescription(!showFullDescription);
+                      }}
+                      className="text-white text-xs md:text-xs font-poppins font-semibold mt-1 md:mt-1 opacity-75 hover:opacity-100 active:scale-95 transition-all"
+                    >
+                      {showFullDescription ? 'Show less' : 'Show more'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -603,6 +645,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {isActive && !showCommentsModal && (
         <div className="fixed md:absolute right-3 md:right-6 bottom-40 md:bottom-8 flex flex-col gap-5 md:gap-6 z-[40] pointer-events-auto">
           <button
+            type="button"
             onClick={handleLike}
             className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
           >
@@ -617,6 +660,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           </button>
 
           <button
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -628,6 +672,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           </button>
 
           <button
+            type="button"
             onClick={handleSave}
             className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
           >
@@ -638,38 +683,104 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             )}
           </button>
 
-          <button
-            onClick={handleShare}
-            className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
-          >
-            <IoShareSocialSharp size={28} className="text-white md:w-8 md:h-8" />
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowMoreMenu(!showMoreMenu);
+              }}
+              className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform more-menu-button"
+            >
+              <IoEllipsisVertical size={28} className="text-white md:w-8 md:h-8" />
+            </button>
 
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (!isAuthenticated) {
-                alert('Please login to report videos');
-                return;
-              }
-              setShowReportModal(true);
-            }}
-            className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
-          >
-            <IoFlagOutline size={28} className="text-white md:w-8 md:h-8" />
-          </button>
+            {showMoreMenu && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute bottom-0 right-full mr-3 bg-black/90 backdrop-blur-md rounded-lg py-2 min-w-[160px] shadow-2xl z-50 more-menu"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleShare(e as any);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleShare(e as any);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  className="w-full text-left px-4 py-3 text-white hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                >
+                  <IoShareSocialSharp size={20} />
+                  Share
+                </button>
 
-          <button
-            onClick={toggleFullscreen}
-            className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform"
-          >
-            {isFullscreen ? (
-              <IoContractOutline size={28} className="text-white md:w-8 md:h-8" />
-            ) : (
-              <IoExpandOutline size={28} className="text-white md:w-8 md:h-8" />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFullscreen(e as any);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleFullscreen(e as any);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  className="w-full text-left px-4 py-3 text-white hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                >
+                  {isFullscreen ? <IoContractOutline size={20} /> : <IoExpandOutline size={20} />}
+                  {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!isAuthenticated) {
+                      alert('Please login to report videos');
+                      setShowMoreMenu(false);
+                      return;
+                    }
+                    setShowReportModal(true);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!isAuthenticated) {
+                      alert('Please login to report videos');
+                      setShowMoreMenu(false);
+                      return;
+                    }
+                    setShowReportModal(true);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                >
+                  <IoFlagOutline size={20} />
+                  Report
+                </button>
+              </motion.div>
             )}
-          </button>
+          </div>
         </div>
       )}
 

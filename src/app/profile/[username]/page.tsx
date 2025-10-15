@@ -5,21 +5,29 @@ import { useParams, useRouter } from 'next/navigation';
 import { authAPI, feedAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoPersonCircleOutline, IoPlaySharp } from 'react-icons/io5';
+import { IoPersonCircleOutline, IoPlaySharp, IoSettingsOutline } from 'react-icons/io5';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
 interface UserProfile {
   id: string;
   username: string;
+  email: string | null;
+  full_name: string | null;
+  bio: string | null;
+  profile_image_url: string | null;
   created_at: string;
 }
 
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
   const username = params.username as string;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isOwnProfile = currentUser?.username === username;
 
   useEffect(() => {
     loadProfile();
@@ -29,8 +37,8 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       const response = await authAPI.getUserProfile(username);
-      if (response.status === 'success' && response.data) {
-        setProfile(response.data);
+      if (response.status === 'success' && response.data?.profile) {
+        setProfile(response.data.profile);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -68,28 +76,61 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {}
         <div className="flex flex-col items-center mb-8">
-          <IoPersonCircleOutline size={100} className="text-white mb-4" />
-          <h1 className="text-2xl md:text-3xl font-poppins font-bold mb-2">
+          {profile?.profile_image_url ? (
+            <img
+              src={profile.profile_image_url}
+              alt={profile.username}
+              className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover mb-4 border-4 border-white/20"
+            />
+          ) : (
+            <IoPersonCircleOutline size={100} className="text-white mb-4" />
+          )}
+          {profile?.full_name && (
+            <h1 className="text-2xl md:text-3xl font-poppins font-bold mb-1">
+              {profile.full_name}
+            </h1>
+          )}
+          <h2 className={`${profile?.full_name ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl font-bold'} font-poppins text-gray-300 mb-2`}>
             @{profile?.username}
-          </h1>
-          <p className="text-gray-400 font-poppins text-sm">
+          </h2>
+          {profile?.bio && (
+            <p className="text-white font-poppins text-sm md:text-base text-center max-w-2xl mb-3 px-4">
+              {profile.bio}
+            </p>
+          )}
+          <p className="text-gray-500 font-poppins text-xs md:text-sm mb-3">
             Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
           </p>
+          {isOwnProfile && (
+            <Link
+              href="/profile/edit"
+              className="text-gray-400 hover:text-white font-poppins text-sm transition-colors"
+            >
+              Edit Profile
+            </Link>
+          )}
         </div>
 
         {}
         <div className="mt-8">
-          <h2 className="text-xl font-poppins font-semibold mb-4">Videos</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-poppins font-semibold">Videos</h2>
+            <span className="text-gray-400 font-poppins text-sm">{videos.length} videos</span>
+          </div>
           {videos.length === 0 ? (
-            <p className="text-gray-400 text-center font-poppins">No videos yet</p>
+            <div className="text-center py-12">
+              <IoPlaySharp size={64} className="text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400 font-poppins">No videos yet</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {videos.map((video) => (
                 <motion.div
                   key={video.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="relative aspect-[9/16] bg-app-gray cursor-pointer overflow-hidden"
-                  onClick={() => router.push(`/?video=${video.id}`)}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative aspect-[9/16] bg-app-gray cursor-pointer overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-shadow"
+                  onClick={() => router.push(`/kalesh/${video.id}`)}
                 >
                   {video.thumbnail_url ? (
                     <img
@@ -98,20 +139,23 @@ export default function ProfilePage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                       <IoPlaySharp size={48} className="text-white opacity-50" />
                     </div>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
-                    <p className="text-white text-sm font-poppins line-clamp-2">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <IoPlaySharp size={56} className="text-white" />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-3">
+                    <p className="text-white text-xs md:text-sm font-poppins font-medium line-clamp-2 mb-1">
                       {video.title}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-300 font-poppins">
-                        {video.views} views
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-[10px] md:text-xs text-gray-300 font-poppins">
+                        {video.views.toLocaleString()} views
                       </span>
-                      <span className="text-xs text-gray-300 font-poppins">
-                        {video.likes} likes
+                      <span className="text-[10px] md:text-xs text-gray-300 font-poppins">
+                        {video.likes.toLocaleString()} likes
                       </span>
                     </div>
                   </div>

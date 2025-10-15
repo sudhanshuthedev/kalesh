@@ -14,15 +14,21 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'Kalesh - Watch Kaleshi Videos',
-  description: 'Watch and share Kaleshi videos - The ultimate video platform',
-  keywords: 'Kalesh, Kaleshi, videos, watch videos, share videos, video platform',
+  description: 'Watch and share Kaleshi videos - The ultimate video platform for trending content',
+  keywords: 'Kalesh, Kaleshi, videos, watch videos, share videos, video platform, trending videos, viral videos',
   authors: [{ name: 'Kalesh' }],
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   themeColor: '#000000',
   openGraph: {
     title: 'Kalesh - Watch Kaleshi Videos',
-    description: 'Watch and share Kaleshi videos - The ultimate video platform',
+    description: 'Watch and share Kaleshi videos - The ultimate video platform for trending content',
     type: 'website',
+    siteName: 'Kalesh',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kalesh - Watch Kaleshi Videos',
+    description: 'Watch and share Kaleshi videos - The ultimate video platform for trending content',
   },
 };
 

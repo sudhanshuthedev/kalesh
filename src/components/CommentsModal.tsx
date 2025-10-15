@@ -20,6 +20,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   const [commentText, setCommentText] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   const [showReportModal, setShowReportModal] = useState<{ type: 'video' | 'comment', id: string } | null>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated, user } = useAuth();
   const { addModal, removeModal } = useModal();
@@ -29,6 +30,14 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
       loadComments();
     }
   }, [isOpen, videoId]);
+
+  useEffect(() => {
+    if (isInputFocused && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }, [isInputFocused]);
 
   useEffect(() => {
     if (isOpen) {
@@ -96,7 +105,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
 
     try {
       if (isReply) {
-        await commentAPI.replyToComment(replyingTo.id, newCommentText);
+        await commentAPI.replyToComment(videoId, replyingTo.id, newCommentText);
       } else {
         await commentAPI.createComment(videoId, newCommentText);
       }
@@ -300,7 +309,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black/70 z-[200] md:hidden"
+              className="fixed inset-0 bg-black/70 md:hidden"
+              style={{
+                pointerEvents: 'auto',
+                zIndex: 9998
+              }}
             />
 
             {}
@@ -309,7 +322,14 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="md:hidden fixed bottom-0 left-0 right-0 h-[70vh] bg-app-gray rounded-t-3xl z-[201] flex flex-col"
+              className={`md:hidden fixed left-0 right-0 bg-app-gray rounded-t-3xl flex flex-col ${
+                isInputFocused ? 'bottom-0 top-0' : 'bottom-0 h-[70vh]'
+              }`}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                pointerEvents: 'auto',
+                zIndex: 9999
+              }}
             >
               {}
               <div className="w-full flex justify-center pt-2 pb-3">
@@ -345,7 +365,18 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
 
               {}
               {isAuthenticated ? (
-                <div className="border-t border-gray-700 p-4">
+                <div
+                  className="border-t border-gray-700 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-app-gray"
+                  style={{
+                    position: 'sticky',
+                    bottom: 0,
+                    zIndex: 10000,
+                    pointerEvents: 'auto',
+                    touchAction: 'auto'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
                   {replyingTo && (
                     <div className="flex items-center justify-between mb-2 bg-gray-800 px-3 py-2 rounded">
                       <span className="font-poppins text-xs text-gray-400">
@@ -354,25 +385,45 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       <button
                         onClick={() => setReplyingTo(null)}
                         className="text-gray-400 hover:text-white"
+                        type="button"
                       >
                         <IoClose size={16} />
                       </button>
                     </div>
                   )}
-                  <form onSubmit={handleSubmitComment} className="flex gap-2">
+                  <form
+                    onSubmit={handleSubmitComment}
+                    className="flex gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       ref={inputRef}
                       type="text"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
+                      onFocus={() => setIsInputFocused(true)}
+                      onBlur={() => setIsInputFocused(false)}
                       placeholder="Add a comment..."
-                      className="flex-1 bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-white/20"
+                      className="flex-1 bg-gray-800 text-white font-poppins text-base px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-white/20"
                       maxLength={1000}
+                      autoComplete="off"
+                      inputMode="text"
+                      enterKeyHint="send"
+                      style={{
+                        fontSize: '16px',
+                        pointerEvents: 'auto',
+                        touchAction: 'manipulation'
+                      }}
                     />
                     <button
                       type="submit"
                       disabled={!commentText.trim()}
-                      className="bg-white text-black p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform"
+                      onMouseDown={(e) => e.preventDefault()}
+                      className="bg-white text-black p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform flex-shrink-0"
+                      style={{
+                        pointerEvents: 'auto',
+                        touchAction: 'manipulation'
+                      }}
                     >
                       <IoSendSharp size={20} />
                     </button>
@@ -391,7 +442,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="hidden md:flex fixed top-14 right-0 bottom-0 w-[400px] bg-app-gray z-[201] flex-col shadow-2xl"
+              className="hidden md:flex fixed top-14 right-0 bottom-0 w-[400px] bg-app-gray flex-col shadow-2xl"
+              style={{
+                zIndex: 9999,
+                pointerEvents: 'auto'
+              }}
             >
               {}
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
@@ -422,7 +477,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
 
               {}
               {isAuthenticated ? (
-                <div className="border-t border-gray-700 p-6">
+                <div
+                  className="border-t border-gray-700 p-6"
+                  style={{
+                    pointerEvents: 'auto',
+                    zIndex: 10000
+                  }}
+                >
                   {replyingTo && (
                     <div className="flex items-center justify-between mb-3 bg-gray-800 px-3 py-2 rounded">
                       <span className="font-poppins text-sm text-gray-400">
@@ -431,6 +492,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       <button
                         onClick={() => setReplyingTo(null)}
                         className="text-gray-400 hover:text-white"
+                        type="button"
                       >
                         <IoClose size={18} />
                       </button>
@@ -445,11 +507,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       placeholder="Add a comment..."
                       className="flex-1 bg-gray-800 text-white font-poppins text-sm px-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-white/20"
                       maxLength={1000}
+                      style={{ pointerEvents: 'auto' }}
                     />
                     <button
                       type="submit"
                       disabled={!commentText.trim()}
                       className="bg-white text-black p-3 rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-transform"
+                      style={{ pointerEvents: 'auto' }}
                     >
                       <IoSendSharp size={20} />
                     </button>

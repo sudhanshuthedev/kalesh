@@ -105,7 +105,6 @@ export default function SavedPage() {
           video={video}
           isActive={index === activeVideoIndex}
           shouldPreload={index === activeVideoIndex + 1 || index === activeVideoIndex + 2}
-          onInteraction={() => loadVideos(1)}
         />
       ))}
     </div>

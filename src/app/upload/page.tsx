@@ -4,8 +4,8 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { videoAPI } from '@/lib/api';
-import { motion } from 'framer-motion';
-import { IoCloudUploadOutline, IoVideocamOutline, IoCheckmarkCircle } from 'react-icons/io5';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IoCloudUploadOutline, IoVideocamOutline, IoCheckmarkCircle, IoClose } from 'react-icons/io5';
 
 export default function UploadPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -18,12 +18,51 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [showTOS, setShowTOS] = useState(false);
+  const [acceptedTOS, setAcceptedTOS] = useState(false);
+  const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
 
   React.useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  React.useEffect(() => {
+    if (!uploadedVideoId || processingStatus === 'completed' || processingStatus === 'failed') {
+      return;
+    }
+
+    const pollStatus = async () => {
+      try {
+        const response = await videoAPI.getProcessingStatus(uploadedVideoId);
+        if (response.status === 'success') {
+          const status = response.data?.processing_status;
+          const position = response.data?.queue_position;
+
+          setProcessingStatus(status);
+          if (position !== undefined) {
+            setQueuePosition(position);
+          }
+
+          if (status === 'completed') {
+            setTimeout(() => {
+              router.push('/');
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to get processing status:', error);
+      }
+    };
+
+    const interval = setInterval(pollStatus, 3000);
+    pollStatus();
+
+    return () => clearInterval(interval);
+  }, [uploadedVideoId, processingStatus, router]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,6 +83,11 @@ export default function UploadPage() {
       return;
     }
 
+    if (!acceptedTOS) {
+      setShowTOS(true);
+      return;
+    }
+
     setIsUploading(true);
     setError('');
 
@@ -56,10 +100,18 @@ export default function UploadPage() {
 
       const response = await videoAPI.upload(formData);
       if (response.status === 'success') {
-        setUploadSuccess(true);
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
+        const videoId = response.data?.video?.id;
+        if (videoId) {
+          setUploadedVideoId(videoId);
+          setProcessingStatus(response.data?.video?.processing_status || 'pending');
+          setUploadSuccess(true);
+
+        } else {
+          setUploadSuccess(true);
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to upload video');
@@ -83,15 +135,81 @@ export default function UploadPage() {
   if (uploadSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-black px-4">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', damping: 10 }}
-        >
-          <IoCheckmarkCircle size={80} className="text-green-500 mb-4" />
-        </motion.div>
-        <h2 className="text-white font-poppins text-2xl font-bold mb-2">Upload Successful!</h2>
-        <p className="text-gray-400 font-poppins">Redirecting to home...</p>
+        {processingStatus === 'completed' ? (
+          <>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', damping: 10 }}
+            >
+              <IoCheckmarkCircle size={80} className="text-green-500 mb-4" />
+            </motion.div>
+            <h2 className="text-white font-poppins text-2xl font-bold mb-2">Video Ready!</h2>
+            <p className="text-gray-400 font-poppins">Your video has been processed successfully</p>
+            <p className="text-gray-500 font-poppins text-sm mt-2">Redirecting to home...</p>
+          </>
+        ) : processingStatus === 'failed' ? (
+          <>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', damping: 10 }}
+            >
+              <IoCloudUploadOutline size={80} className="text-red-500 mb-4" />
+            </motion.div>
+            <h2 className="text-white font-poppins text-2xl font-bold mb-2">Processing Failed</h2>
+            <p className="text-gray-400 font-poppins">Something went wrong processing your video</p>
+            <button
+              onClick={() => router.push('/')}
+              className="mt-4 px-6 py-2 bg-white text-black font-poppins rounded hover:bg-gray-200"
+            >
+              Go Home
+            </button>
+          </>
+        ) : (
+          <>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              className="mb-4"
+            >
+              <IoVideocamOutline size={80} className="text-white" />
+            </motion.div>
+            <h2 className="text-white font-poppins text-2xl font-bold mb-2">
+              {processingStatus === 'processing' ? 'Processing Video...' : 'Video Uploaded!'}
+            </h2>
+            <p className="text-gray-400 font-poppins text-center mb-2">
+              {processingStatus === 'processing'
+                ? 'Your video is being processed. This may take a few minutes.'
+                : 'Your video is in the queue and will be processed shortly.'}
+            </p>
+            {queuePosition !== null && queuePosition > 0 && (
+              <p className="text-yellow-400 font-poppins text-sm">
+                Queue position: {queuePosition}
+              </p>
+            )}
+            <div className="mt-4 flex items-center gap-2">
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="w-2 h-2 bg-white rounded-full"
+              />
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                className="w-2 h-2 bg-white rounded-full"
+              />
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+                className="w-2 h-2 bg-white rounded-full"
+              />
+            </div>
+            <p className="text-gray-500 font-poppins text-xs mt-4">
+              You can leave this page. The video will appear in your profile when ready.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -188,6 +306,140 @@ export default function UploadPage() {
             {isUploading ? 'Uploading...' : 'Upload Video'}
           </button>
         </form>
+
+        {}
+        <AnimatePresence>
+          {showTOS && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowTOS(false)}
+                className="fixed inset-0 bg-black/80 z-[9998] flex items-center justify-center p-4"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-app-gray rounded-lg max-w-2xl w-full max-h-[80vh] flex flex-col z-[9999]"
+                >
+                  <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                    <h2 className="font-poppins font-bold text-xl text-white">Terms of Service</h2>
+                    <button onClick={() => setShowTOS(false)} className="text-gray-400 hover:text-white">
+                      <IoClose size={24} />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-6 text-gray-300 font-poppins text-sm leading-relaxed space-y-4">
+                    <p className="text-xs text-gray-500">Last Updated: October 15, 2025</p>
+
+                    <p>
+                      Welcome to our platform. These Terms of Service ("Terms") explain the rules that govern your use of our website, mobile application, and all related services ("the Service"). By accessing or using the Service, you agree to be bound by these Terms and all applicable laws. If you do not agree, please do not continue using the platform.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Use of the Platform</h3>
+                    <p>
+                      The Service is intended for individuals who are at least 18 years old. By using the platform, you confirm that you meet this requirement and that you are legally capable of entering into a binding agreement. You are responsible for maintaining the confidentiality of your account and password and for all activities that occur under your account.
+                    </p>
+                    <p>
+                      You agree to use the Service only for lawful purposes and in accordance with these Terms. Any attempt to misuse or disrupt the platform, gain unauthorized access, or distribute harmful material is strictly prohibited.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">User-Generated Content</h3>
+                    <p>
+                      Our platform allows users to upload, post, and share videos and other materials ("Content"). You retain all ownership rights to the Content you create. However, by submitting Content, you grant us a non-exclusive, worldwide, royalty-free license to host, display, and distribute it as necessary to operate and promote the platform.
+                    </p>
+                    <p>
+                      You understand and agree that you are solely responsible for your uploads and for ensuring that they comply with all applicable laws and these Terms. We do not endorse or guarantee the accuracy, integrity, or quality of any Content submitted by users.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Prohibited Material</h3>
+                    <p>Certain types of material are strictly forbidden on the platform. This includes, but is not limited to, content that:</p>
+                    <ul className="list-disc pl-6 space-y-1">
+                      <li>depicts or involves minors in any sexual or exploitative manner (CSAM)</li>
+                      <li>promotes or depicts bestiality, sexual assault, or animal abuse</li>
+                      <li>contains explicit gore, serious injury, or death intended to shock or disgust</li>
+                      <li>incites hate, violence, or discrimination</li>
+                      <li>shares private or intimate material without consent</li>
+                      <li>violates copyrights, trademarks, or other legal rights</li>
+                      <li>spreads scams, spam, or malicious software</li>
+                    </ul>
+                    <p>
+                      We reserve the right to remove any Content that we believe violates these standards or applicable law, and to suspend or terminate the accounts of those responsible.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Moderation and Enforcement</h3>
+                    <p>
+                      Content on the platform may be moderated automatically or manually. Users can report inappropriate material through the reporting system provided. Depending on the severity and frequency of violations, we may remove content, restrict certain features, suspend accounts, or notify relevant authorities when legally required.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Intellectual Property</h3>
+                    <p>
+                      All rights in the platform's design, code, interface, and branding belong exclusively to the platform owners. You may not reproduce, modify, distribute, or create derivative works based on the Service without prior written consent.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Termination</h3>
+                    <p>
+                      We may suspend or permanently disable access to your account if you breach these Terms or engage in conduct that may harm other users or the platform's integrity. You may close your account at any time by following the account deletion process.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Disclaimer and Limitation of Liability</h3>
+                    <p>
+                      The Service is provided "as is" and "as available" without any warranties, express or implied. We do not guarantee uninterrupted service, error-free performance, or absolute security. To the fullest extent permitted by law, we are not liable for any damages arising from your use of or inability to use the Service, including damages caused by user-generated content.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Changes to These Terms</h3>
+                    <p>
+                      We may revise these Terms from time to time to reflect updates in our operations or legal obligations. Any changes will be posted on this page with a revised "Last Updated" date. Your continued use of the Service after such updates constitutes your acceptance of the new Terms.
+                    </p>
+
+                    <h3 className="font-semibold text-white mt-4">Summary</h3>
+                    <p className="font-semibold">
+                      This platform allows users to share videos responsibly. Illegal content, hate speech, and graphic violence are not tolerated. Respect the law, respect others, and post responsibly.
+                    </p>
+                  </div>
+
+                  <div className="p-6 border-t border-gray-700">
+                    <div className="flex items-center gap-3 mb-4">
+                      <input
+                        type="checkbox"
+                        id="acceptTOS"
+                        checked={acceptedTOS}
+                        onChange={(e) => setAcceptedTOS(e.target.checked)}
+                        className="w-5 h-5 cursor-pointer"
+                      />
+                      <label htmlFor="acceptTOS" className="font-poppins text-sm text-white cursor-pointer">
+                        I agree to the Terms of Service
+                      </label>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowTOS(false)}
+                        className="flex-1 bg-gray-700 text-white font-poppins py-2.5 rounded hover:bg-gray-600 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (acceptedTOS) {
+                            setShowTOS(false);
+                            handleSubmit(new Event('submit') as any);
+                          }
+                        }}
+                        disabled={!acceptedTOS}
+                        className="flex-1 bg-white text-black font-poppins py-2.5 rounded hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Continue
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
