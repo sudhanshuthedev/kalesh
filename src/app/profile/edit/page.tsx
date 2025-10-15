@@ -36,6 +36,25 @@ export default function EditProfilePage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    document.title = 'Edit Profile - Kalesh';
+
+    const metaDescription = document.querySelector('meta[name="description"]');
+    const descriptionText = 'Edit your profile on Kalesh';
+    if (metaDescription) {
+      metaDescription.setAttribute('content', descriptionText);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = descriptionText;
+      document.head.appendChild(meta);
+    }
+
+    return () => {
+      document.title = 'Kalesh - Watch Kaleshi Videos';
+    };
+  }, []);
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

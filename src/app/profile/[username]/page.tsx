@@ -36,6 +36,28 @@ export default function ProfilePage() {
     loadUserVideos();
   }, [username]);
 
+  useEffect(() => {
+    if (profile) {
+      const displayName = profile.full_name || `@${profile.username}`;
+      document.title = `${displayName} - Kalesh`;
+
+      const metaDescription = document.querySelector('meta[name="description"]');
+      const descriptionText = profile.bio || `Watch videos by ${displayName} on Kalesh`;
+      if (metaDescription) {
+        metaDescription.setAttribute('content', descriptionText);
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = descriptionText;
+        document.head.appendChild(meta);
+      }
+    }
+
+    return () => {
+      document.title = 'Kalesh - Watch Kaleshi Videos';
+    };
+  }, [profile]);
+
   const loadProfile = async () => {
     try {
       const response = await authAPI.getUserProfile(username);

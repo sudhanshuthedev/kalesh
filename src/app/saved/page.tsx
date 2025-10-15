@@ -32,6 +32,34 @@ export default function SavedPage() {
     }
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    document.title = 'Saved Videos - Kalesh';
+
+    const metaDescription = document.querySelector('meta[name="description"]');
+    const descriptionText = 'Your saved videos on Kalesh';
+    if (metaDescription) {
+      metaDescription.setAttribute('content', descriptionText);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = descriptionText;
+      document.head.appendChild(meta);
+    }
+
+    return () => {
+      document.title = 'Kalesh - Watch Kaleshi Videos';
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videos.length > 0 && videos[activeVideoIndex]) {
+      const activeVideo = videos[activeVideoIndex];
+      document.title = `${activeVideo.title} | Saved Videos | Kalesh`;
+    } else {
+      document.title = 'Saved Videos - Kalesh';
+    }
+  }, [activeVideoIndex, videos]);
+
   const loadVideos = useCallback(async (pageNum: number) => {
     if (loadingRef.current) return;
 

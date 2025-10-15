@@ -35,6 +35,25 @@ export default function UploadPage() {
   }, [isAuthenticated, authLoading, router]);
 
   useEffect(() => {
+    document.title = 'Upload Video - Kalesh';
+
+    const metaDescription = document.querySelector('meta[name="description"]');
+    const descriptionText = 'Upload and share your videos on Kalesh';
+    if (metaDescription) {
+      metaDescription.setAttribute('content', descriptionText);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = descriptionText;
+      document.head.appendChild(meta);
+    }
+
+    return () => {
+      document.title = 'Kalesh - Watch Kaleshi Videos';
+    };
+  }, []);
+
+  useEffect(() => {
     loadTrendingTags();
   }, []);
 

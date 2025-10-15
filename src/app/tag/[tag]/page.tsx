@@ -24,6 +24,34 @@ export default function TagPage() {
     loadVideos(1);
   }, [tag]);
 
+  useEffect(() => {
+    document.title = `#${tag} - Kalesh`;
+
+    const metaDescription = document.querySelector('meta[name="description"]');
+    const descriptionText = `Watch videos tagged with #${tag} on Kalesh`;
+    if (metaDescription) {
+      metaDescription.setAttribute('content', descriptionText);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = descriptionText;
+      document.head.appendChild(meta);
+    }
+
+    return () => {
+      document.title = 'Kalesh - Watch Kaleshi Videos';
+    };
+  }, [tag]);
+
+  useEffect(() => {
+    if (videos.length > 0 && videos[activeVideoIndex]) {
+      const activeVideo = videos[activeVideoIndex];
+      document.title = `${activeVideo.title} | #${tag} | Kalesh`;
+    } else {
+      document.title = `#${tag} - Kalesh`;
+    }
+  }, [activeVideoIndex, videos, tag]);
+
   const loadVideos = useCallback(async (pageNum: number) => {
     if (loadingRef.current) return;
 
