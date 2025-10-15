@@ -243,6 +243,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
           <p className="font-poppins text-sm text-white mb-2 break-words">{comment.text}</p>
           <div className="flex items-center gap-4">
             <button
+              type="button"
               onClick={() => handleLikeComment(comment.id)}
               className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
             >
@@ -257,6 +258,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
             </button>
             {!isReply && (
               <button
+                type="button"
                 onClick={() => handleReply(comment)}
                 className="font-poppins text-xs text-gray-400 hover:text-white transition-colors"
               >
@@ -265,6 +267,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
             )}
             {user?.username === comment.username && (
               <button
+                type="button"
                 onClick={() => handleDeleteComment(comment.id)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
               >
@@ -272,6 +275,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               </button>
             )}
             <button
+              type="button"
               onClick={() => setShowReportModal({ type: 'comment', id: comment.id })}
               className="text-gray-400 hover:text-yellow-500 transition-colors"
             >
@@ -580,8 +584,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 z-[300] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4"
       onClick={onClose}
+      style={{ zIndex: 10100, pointerEvents: 'auto' }}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
@@ -589,6 +594,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="bg-app-gray rounded-lg p-6 max-w-md w-full"
+        style={{ pointerEvents: 'auto' }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-poppins font-semibold text-white text-lg">Report {type}</h3>
