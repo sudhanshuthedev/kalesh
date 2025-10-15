@@ -30,7 +30,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
     }
   }, [isOpen, videoId]);
 
-
   useEffect(() => {
     if (isOpen) {
       addModal(`comments-${videoId}`);

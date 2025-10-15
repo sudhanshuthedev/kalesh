@@ -80,6 +80,10 @@ export const videoAPI = {
     const response = await api.get(`/videos/${videoId}/status`);
     return response.data;
   },
+  trackView: async (videoId: string) => {
+    const response = await api.post(`/videos/${videoId}/view`);
+    return response.data;
+  },
   deleteVideo: async (videoId: string) => {
     const response = await api.delete(`/videos/${videoId}`);
     return response.data;

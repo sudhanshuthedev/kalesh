@@ -43,6 +43,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<HTMLDivElement>(null);
+  const viewTrackedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -54,6 +55,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       }
     };
   }, []);
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const handlePlay = async () => {
+      if (!viewTrackedRef.current && isActive) {
+        viewTrackedRef.current = true;
+        try {
+          const { videoAPI } = await import('@/lib/api');
+          await videoAPI.trackView(video.id);
+        } catch (error) {
+          console.error('Failed to track view:', error);
+        }
+      }
+    };
+
+    videoElement.addEventListener('play', handlePlay);
+
+    return () => {
+      videoElement.removeEventListener('play', handlePlay);
+    };
+  }, [video.id, isActive]);
+
+  useEffect(() => {
+    viewTrackedRef.current = false;
+  }, [video.id]);
 
   useEffect(() => {
 
