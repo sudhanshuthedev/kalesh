@@ -20,7 +20,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   const [commentText, setCommentText] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   const [showReportModal, setShowReportModal] = useState<{ type: 'video' | 'comment', id: string } | null>(null);
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated, user } = useAuth();
   const { addModal, removeModal } = useModal();
@@ -31,13 +30,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
     }
   }, [isOpen, videoId]);
 
-  useEffect(() => {
-    if (isInputFocused && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    }
-  }, [isInputFocused]);
 
   useEffect(() => {
     if (isOpen) {
@@ -322,13 +314,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className={`md:hidden fixed left-0 right-0 bg-app-gray rounded-t-3xl flex flex-col ${
-                isInputFocused ? 'bottom-0 top-0' : 'bottom-0 h-[70vh]'
-              }`}
+              className="md:hidden fixed left-0 right-0 bottom-0 h-[75vh] bg-app-gray rounded-t-3xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               style={{
                 pointerEvents: 'auto',
-                zIndex: 9999
+                zIndex: 9999,
+                touchAction: 'auto'
               }}
             >
               {}
@@ -401,8 +393,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       type="text"
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
-                      onFocus={() => setIsInputFocused(true)}
-                      onBlur={() => setIsInputFocused(false)}
                       placeholder="Add a comment..."
                       className="flex-1 bg-gray-800 text-white font-poppins text-base px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-white/20"
                       maxLength={1000}
@@ -419,6 +409,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       type="submit"
                       disabled={!commentText.trim()}
                       onMouseDown={(e) => e.preventDefault()}
+                      onTouchStart={(e) => e.preventDefault()}
                       className="bg-white text-black p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform flex-shrink-0"
                       style={{
                         pointerEvents: 'auto',
