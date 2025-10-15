@@ -33,7 +33,7 @@ export default function ProfilePage() {
   const [hasMore, setHasMore] = useState(true);
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
-  const videosContainerRef = useRef<HTMLDivElement>(null);
+  const pageContainerRef = useRef<HTMLDivElement>(null);
   const isOwnProfile = currentUser?.username === username;
 
   useEffect(() => {
@@ -117,8 +117,10 @@ export default function ProfilePage() {
     loadUserVideos(1);
   };
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
+  const handleScroll = useCallback(() => {
+    if (!pageContainerRef.current) return;
+
+    const container = pageContainerRef.current;
     const scrollTop = container.scrollTop;
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
@@ -128,6 +130,14 @@ export default function ProfilePage() {
       loadUserVideos(nextPage);
     }
   }, [hasMore, loadUserVideos]);
+
+  useEffect(() => {
+    const container = pageContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   if (isLoading && videos.length === 0) {
     return (
@@ -142,7 +152,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-16 pb-20 md:pb-4 overflow-y-auto h-screen">
+    <div ref={pageContainerRef} className="min-h-screen bg-black text-white pt-16 pb-20 md:pb-4 overflow-y-auto h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {}
         <div className="flex flex-col items-center mb-8">
@@ -197,11 +207,7 @@ export default function ProfilePage() {
               <p className="text-gray-400 font-poppins">No videos yet</p>
             </div>
           ) : (
-            <div
-              ref={videosContainerRef}
-              onScroll={handleScroll}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-h-[calc(100vh-400px)] overflow-y-auto pb-4"
-            >
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 pb-4">
               {videos.map((video) => (
                 <motion.div
                   key={video.id}
