@@ -88,14 +88,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       return;
     }
 
-    let videoUrl = video.playlist_url || video.video_url;
+    const videoUrl = video.playlist_url || video.video_url;
 
     if (!videoRef.current || !videoUrl) {
       setIsLoading(false);
       return;
-    }
-    if (typeof window !== 'undefined' && videoUrl.includes('cdn.fly0.tech')) {
-      videoUrl = videoUrl.replace('https://cdn.fly0.tech/', '/api/cdn-proxy/');
     }
 
     const videoElement = videoRef.current;
@@ -144,16 +141,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           lowLatencyMode: false,
           backBufferLength: 90,
           progressive: true,
-          xhrSetup: function (xhr: any, url: string) {
-
-            let requestUrl = url;
-            if (url.includes('cdn.fly0.tech')) {
-              requestUrl = url.replace('https://cdn.fly0.tech/', '/api/cdn-proxy/');
-            }
-            xhr.open('GET', requestUrl, true);
-            xhr.withCredentials = false;
-            xhr.setRequestHeader('Accept', '*/*');
-          },
         });
 
         hlsRef.current = hls;

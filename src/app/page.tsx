@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 export default function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
@@ -67,27 +67,9 @@ export default function Home() {
     }
   };
 
-  if (isLoading && videos.length === 0) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          className="w-12 h-12 border-4 border-white border-t-transparent rounded-full"
-        />
-      </div>
-    );
-  }
-
-  if (videos.length === 0) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-black">
-        <p className="text-white font-poppins text-lg">No videos available</p>
-      </div>
-    );
-  }
-
-  return (
+  return videos.length === 0 ? (
+    <div className="h-screen flex items-center justify-center bg-black" />
+  ) : (
     <div
       ref={containerRef}
       onScroll={handleScroll}
