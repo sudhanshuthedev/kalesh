@@ -46,9 +46,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAllTags, setShowAllTags] = useState(false);
+  const [hearts, setHearts] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [showBigHeart, setShowBigHeart] = useState(false);
+  const [bigHeartPosition, setBigHeartPosition] = useState({ x: 0, y: 0 });
+  const [videoProgress, setVideoProgress] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<HTMLDivElement>(null);
   const viewTrackedRef = useRef(false);
+  const lastTapRef = useRef<number>(0);
   const isOwnVideo = user?.username === video.uploader_username;
 
   useEffect(() => {
@@ -87,6 +92,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   useEffect(() => {
     viewTrackedRef.current = false;
     setShowAllTags(false);
+    setVideoProgress(0);
+  }, [video.id]);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const updateProgress = () => {
+      const progress = (videoElement.currentTime / videoElement.duration) * 100;
+      setVideoProgress(progress || 0);
+    };
+
+    videoElement.addEventListener('timeupdate', updateProgress);
+    videoElement.addEventListener('loadedmetadata', updateProgress);
+
+    return () => {
+      videoElement.removeEventListener('timeupdate', updateProgress);
+      videoElement.removeEventListener('loadedmetadata', updateProgress);
+    };
   }, [video.id]);
 
   useEffect(() => {
@@ -310,9 +334,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     };
   }, [isActive]);
 
-  const handleLike = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleLike = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     if (!isAuthenticated) {
       alert('Please login to like videos');
@@ -327,6 +353,59 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     } catch (error) {
       setIsLiked(!isLiked);
       setLikes((prev) => (isLiked ? prev + 1 : prev - 1));
+    }
+  };
+
+  const createHeart = (x: number, y: number) => {
+    const heartId = Date.now() + Math.random();
+    setHearts((prev) => [...prev, { id: heartId, x, y }]);
+
+    setTimeout(() => {
+      setHearts((prev) => prev.filter((h) => h.id !== heartId));
+    }, 2000);
+  };
+
+  const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isAuthenticated) return;
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      let tapX, tapY;
+      if ('touches' in e) {
+        tapX = e.touches[0]?.clientX || e.changedTouches[0].clientX;
+        tapY = e.touches[0]?.clientY || e.changedTouches[0].clientY;
+      } else {
+        tapX = e.clientX;
+        tapY = e.clientY;
+      }
+
+      setBigHeartPosition({ x: tapX, y: tapY });
+
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => {
+          createHeart(
+            tapX + (Math.random() - 0.5) * 80,
+            tapY - 80 + (Math.random() - 0.5) * 40
+          );
+        }, i * 50);
+      }
+
+      setShowBigHeart(true);
+      setTimeout(() => setShowBigHeart(false), 800);
+
+      if (!isLiked) {
+        handleLike();
+      }
+
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
     }
   };
 
@@ -549,6 +628,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           style={{ top: '56px', bottom: '64px' }}
           onMouseDown={handlePressStart}
           onMouseUp={handlePressEnd}
+          onClick={handleDoubleTap}
           onMouseLeave={() => {
             if (pressTimer.current) {
               clearTimeout(pressTimer.current);
@@ -556,7 +636,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             }
           }}
           onTouchStart={handlePressStart}
-          onTouchEnd={handlePressEnd}
+          onTouchEnd={(e) => {
+            handlePressEnd(e);
+            handleDoubleTap(e);
+          }}
         />
       )}
 
@@ -596,6 +679,46 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           <IoVolumeHighOutline size={60} className="text-white drop-shadow-2xl" />
         </motion.div>
       )}
+
+      {}
+      {showBigHeart && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.5 }}
+          transition={{ duration: 0.5 }}
+          className="fixed z-[60] pointer-events-none -translate-x-1/2 -translate-y-1/2"
+          style={{ left: `${bigHeartPosition.x}px`, top: `${bigHeartPosition.y}px` }}
+        >
+          <IoHeartSharp size={120} className="text-red-500 drop-shadow-2xl" />
+        </motion.div>
+      )}
+
+      {}
+      {hearts.map((heart) => (
+        <motion.div
+          key={heart.id}
+          initial={{ opacity: 0, scale: 0, y: 0 }}
+          animate={{
+            opacity: [0, 1, 1, 0],
+            scale: [0, 1.2, 1, 0.8],
+            y: -150,
+            x: [(Math.random() - 0.5) * 40]
+          }}
+          transition={{ duration: 2, ease: 'easeOut' }}
+          className="fixed z-[60] pointer-events-none"
+          style={{ left: `${heart.x}px`, top: `${heart.y}px` }}
+        >
+          <IoHeartSharp
+            size={30 + Math.random() * 20}
+            className="text-red-500 drop-shadow-lg"
+            style={{
+              filter: 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.8))',
+              transform: `rotate(${(Math.random() - 0.5) * 30}deg)`
+            }}
+          />
+        </motion.div>
+      ))}
 
       {}
       {isActive && video.tags && video.tags.length > 0 && (
@@ -914,6 +1037,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           onClose={() => setShowDeleteModal(false)}
           onDelete={handleDeleteVideo}
         />
+      )}
+
+      {}
+      {isActive && isPlaying && (
+        <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/20 z-[50]">
+          <motion.div
+            className="h-full bg-white"
+            initial={{ width: '0%' }}
+            animate={{ width: `${videoProgress}%` }}
+            transition={{ duration: 0.2, ease: 'linear' }}
+          />
+        </div>
       )}
     </div>
   );
