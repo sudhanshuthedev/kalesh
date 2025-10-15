@@ -356,8 +356,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    const shareUrl = `${window.location.origin}/kalesh/${video.id}`;
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const shareUrl = `${baseUrl}/kalesh/${video.id}`;
 
     if (navigator.share) {
       try {
@@ -615,7 +615,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           <div className="max-w-md md:max-w-xl">
             <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
               <div className="flex items-center gap-1.5">
-                <IoPersonCircleOutline size={26} className="text-white md:w-7 md:h-7" />
+                {video.uploader_profile_image_url ? (
+                  <img
+                    src={video.uploader_profile_image_url}
+                    alt={video.uploader_username}
+                    className="w-[26px] h-[26px] md:w-7 md:h-7 rounded-full object-cover border border-white/20"
+                  />
+                ) : (
+                  <IoPersonCircleOutline size={26} className="text-white md:w-7 md:h-7" />
+                )}
                 <span className="text-white font-poppins font-semibold text-sm md:text-sm">
                   @{video.uploader_username}
                 </span>

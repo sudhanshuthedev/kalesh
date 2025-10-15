@@ -36,6 +36,7 @@ export interface Video {
   thumbnail_url?: string;
   uploader_id: string;
   uploader_username: string;
+  uploader_profile_image_url?: string | null;
   duration?: number;
   views: number;
   likes: number;
