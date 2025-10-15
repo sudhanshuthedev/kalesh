@@ -596,6 +596,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
+      {isActive && video.tags && video.tags.length > 0 && (
+        <div className="fixed top-16 md:top-[72px] left-0 right-0 px-4 z-[40] pointer-events-none">
+          <div className="flex flex-wrap gap-2">
+            {video.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="px-2.5 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-poppins text-xs"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {}
 
       {isActive && (
