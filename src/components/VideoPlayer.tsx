@@ -362,7 +362,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     setTimeout(() => {
       setHearts((prev) => prev.filter((h) => h.id !== heartId));
-    }, 2000);
+    }, 1500);
   };
 
   const handleDoubleTap = (e: React.MouseEvent | React.TouchEvent) => {
@@ -387,17 +387,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
       setBigHeartPosition({ x: tapX, y: tapY });
 
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         setTimeout(() => {
           createHeart(
-            tapX + (Math.random() - 0.5) * 80,
-            tapY - 80 + (Math.random() - 0.5) * 40
+            tapX + (Math.random() - 0.5) * 60,
+            tapY - 70 + (Math.random() - 0.5) * 30
           );
-        }, i * 50);
+        }, i * 80);
       }
 
       setShowBigHeart(true);
-      setTimeout(() => setShowBigHeart(false), 800);
+      setTimeout(() => setShowBigHeart(false), 600);
 
       if (!isLiked) {
         handleLike();
@@ -685,12 +685,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         <motion.div
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.5 }}
-          transition={{ duration: 0.5 }}
+          exit={{ opacity: 0, scale: 1.3 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           className="fixed z-[60] pointer-events-none -translate-x-1/2 -translate-y-1/2"
           style={{ left: `${bigHeartPosition.x}px`, top: `${bigHeartPosition.y}px` }}
         >
-          <IoHeartSharp size={120} className="text-red-500 drop-shadow-2xl" />
+          <IoHeartSharp size={100} className="text-red-500 drop-shadow-2xl" />
         </motion.div>
       )}
 
@@ -700,21 +700,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           key={heart.id}
           initial={{ opacity: 0, scale: 0, y: 0 }}
           animate={{
-            opacity: [0, 1, 1, 0],
-            scale: [0, 1.2, 1, 0.8],
-            y: -150,
-            x: [(Math.random() - 0.5) * 40]
+            opacity: [0, 1, 0],
+            scale: [0, 1, 0.7],
+            y: -120,
+            x: [(Math.random() - 0.5) * 30]
           }}
-          transition={{ duration: 2, ease: 'easeOut' }}
+          transition={{ duration: 1.5, ease: 'easeOut' }}
           className="fixed z-[60] pointer-events-none"
           style={{ left: `${heart.x}px`, top: `${heart.y}px` }}
         >
           <IoHeartSharp
-            size={30 + Math.random() * 20}
-            className="text-red-500 drop-shadow-lg"
+            size={25 + Math.random() * 15}
+            className="text-red-500"
             style={{
-              filter: 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.8))',
-              transform: `rotate(${(Math.random() - 0.5) * 30}deg)`
+              filter: 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.6))',
+              transform: `rotate(${(Math.random() - 0.5) * 25}deg)`
             }}
           />
         </motion.div>
