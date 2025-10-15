@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { authAPI, feedAPI } from '@/lib/api';
 import { Video } from '@/types';
@@ -29,11 +29,21 @@ export default function ProfilePage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteModalVideo, setDeleteModalVideo] = useState<Video | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loadingRef = useRef(false);
+  const pageRef = useRef(1);
+  const videosContainerRef = useRef<HTMLDivElement>(null);
   const isOwnProfile = currentUser?.username === username;
 
   useEffect(() => {
     loadProfile();
-    loadUserVideos();
+    setVideos([]);
+    setPage(1);
+    pageRef.current = 1;
+    setHasMore(true);
+    loadUserVideos(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
 
   useEffect(() => {
@@ -69,26 +79,57 @@ export default function ProfilePage() {
     }
   };
 
-  const loadUserVideos = async () => {
+  const loadUserVideos = useCallback(async (pageNum: number) => {
+    if (loadingRef.current) return;
+
     try {
+      loadingRef.current = true;
       setIsLoading(true);
-      const response = await feedAPI.getUserVideos(username, 1, 50);
+
+      const pageSize = pageNum === 1 ? 20 : 20;
+      const response = await feedAPI.getUserVideos(username, pageNum, pageSize);
       if (response.status === 'success' && response.data?.videos) {
-        setVideos(response.data.videos);
+        const newVideos = response.data.videos;
+
+        if (pageNum === 1) {
+          setVideos(newVideos);
+        } else {
+          setVideos((prev) => [...prev, ...newVideos]);
+        }
+
+        setHasMore(newVideos.length === pageSize);
+        pageRef.current = pageNum;
+        setPage(pageNum);
       }
     } catch (error) {
       console.error('Failed to load user videos:', error);
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, [username]);
 
   const handleDeleteVideo = () => {
-
-    loadUserVideos();
+    setVideos([]);
+    setPage(1);
+    pageRef.current = 1;
+    setHasMore(true);
+    loadUserVideos(1);
   };
 
-  if (isLoading) {
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+
+    if (scrollHeight - scrollTop - clientHeight < 500 && !loadingRef.current && hasMore) {
+      const nextPage = pageRef.current + 1;
+      loadUserVideos(nextPage);
+    }
+  }, [hasMore, loadUserVideos]);
+
+  if (isLoading && videos.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <motion.div
@@ -150,13 +191,17 @@ export default function ProfilePage() {
             <h2 className="text-xl font-poppins font-semibold">Videos</h2>
             <span className="text-gray-400 font-poppins text-sm">{videos.length} videos</span>
           </div>
-          {videos.length === 0 ? (
+          {videos.length === 0 && !isLoading ? (
             <div className="text-center py-12">
               <IoPlaySharp size={64} className="text-gray-600 mx-auto mb-4" />
               <p className="text-gray-400 font-poppins">No videos yet</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            <div
+              ref={videosContainerRef}
+              onScroll={handleScroll}
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-h-[calc(100vh-400px)] overflow-y-auto pb-4"
+            >
               {videos.map((video) => (
                 <motion.div
                   key={video.id}
@@ -210,6 +255,15 @@ export default function ProfilePage() {
                   </div>
                 </motion.div>
               ))}
+              {isLoading && videos.length > 0 && (
+                <div className="col-span-2 md:col-span-3 lg:col-span-4 flex justify-center py-8">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    className="w-8 h-8 border-4 border-white border-t-transparent rounded-full"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
