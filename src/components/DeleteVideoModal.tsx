@@ -31,7 +31,9 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
     };
   }, [addModal, removeModal]);
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setError('');
     setIsDeleting(true);
 
@@ -49,14 +51,29 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
     }
   };
 
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDeleting) {
+      onClose();
+    }
+  };
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (!isDeleting && e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-80 z-[100] flex items-center justify-center p-4"
-        onClick={onClose}
+        className="fixed inset-0 bg-black bg-opacity-80 z-[300] flex items-center justify-center p-4"
+        onClick={handleBackdropClick}
+        style={{ pointerEvents: 'auto' }}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -65,10 +82,12 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
           className="bg-app-gray w-full max-w-md p-6 md:p-8 relative"
           onClick={(e) => e.stopPropagation()}
+          style={{ pointerEvents: 'auto' }}
         >
           <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-400 transition-colors"
+            type="button"
+            onClick={handleCancel}
+            className="absolute top-4 right-4 text-white hover:text-gray-400 transition-colors z-10"
             disabled={isDeleting}
           >
             <IoClose size={24} />
@@ -94,24 +113,26 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
           </p>
 
           {error && (
-            <motion.div
+            <motion.p
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500 bg-opacity-10 border border-red-500 text-red-500 px-4 py-3 mb-4 font-poppins text-sm"
+              className="text-red-500 text-sm font-poppins mb-4"
             >
               {error}
-            </motion.div>
+            </motion.p>
           )}
 
           <div className="flex gap-3">
             <button
-              onClick={onClose}
+              type="button"
+              onClick={handleCancel}
               disabled={isDeleting}
-              className="flex-1 bg-gray-700 text-white py-3 font-poppins font-semibold hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gray-700 text-white py-3 font-poppins font-semibold hover:bg-gray-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleDelete}
               disabled={isDeleting}
               className="flex-1 bg-red-600 text-white py-3 font-poppins font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
