@@ -34,7 +34,7 @@ export default function SavedPage() {
 
   const loadVideos = useCallback(async (pageNum: number) => {
     if (loadingRef.current) return;
-    
+
     try {
       loadingRef.current = true;
       setIsLoading(true);
@@ -43,13 +43,13 @@ export default function SavedPage() {
       const response = await feedAPI.getSaved(pageNum, pageSize);
       if (response.status === 'success' && response.data?.videos) {
         const newVideos = response.data.videos;
-        
+
         if (pageNum === 1) {
           setVideos(newVideos);
         } else {
           setVideos((prev) => [...prev, ...newVideos]);
         }
-        
+
         setHasMore(newVideos.length === pageSize);
         pageRef.current = pageNum;
         setPage(pageNum);
@@ -71,7 +71,6 @@ export default function SavedPage() {
     if (newIndex !== activeVideoIndex && newIndex < videos.length) {
       setActiveVideoIndex(newIndex);
 
-      // Load more videos when approaching the end
       if (newIndex >= videos.length - 3 && !loadingRef.current && hasMore) {
         const nextPage = pageRef.current + 1;
         loadVideos(nextPage);

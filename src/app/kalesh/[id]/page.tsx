@@ -3,10 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
-import { feedAPI } from '@/lib/api';
+import { videoAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import Head from 'next/head';
 
 export default function KaleshPage() {
   const params = useParams();
@@ -16,7 +15,10 @@ export default function KaleshPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadVideo();
+    if (videoId) {
+      loadVideo();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId]);
 
   useEffect(() => {
@@ -81,18 +83,18 @@ export default function KaleshPage() {
   const loadVideo = async () => {
     try {
       setIsLoading(true);
-      const response = await feedAPI.getTrending(1, 50);
-      if (response.status === 'success' && response.data?.videos) {
-        const foundVideo = response.data.videos.find((v: Video) => v.id === videoId);
-        if (foundVideo) {
-          setVideo(foundVideo);
-        } else {
-          router.push('/');
-        }
+      const response = await videoAPI.getVideo(videoId);
+      if (response.status === 'success' && response.data) {
+        setVideo(response.data);
+      } else {
+        console.error('Video not found');
+        router.push('/');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load video:', error);
-      router.push('/');
+      if (error.response?.status === 404) {
+        router.push('/');
+      }
     } finally {
       setIsLoading(false);
     }
