@@ -371,7 +371,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
 
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+    if (timeSinceLastTap > 100 && timeSinceLastTap < 300) {
 
       e.preventDefault();
       e.stopPropagation();
@@ -404,7 +404,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       }
 
       lastTapRef.current = 0;
-    } else {
+    } else if (timeSinceLastTap === 0 || timeSinceLastTap > 300) {
+
       lastTapRef.current = now;
     }
   };
