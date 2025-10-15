@@ -45,6 +45,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showReportModal, setShowReportModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAllTags, setShowAllTags] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<HTMLDivElement>(null);
   const viewTrackedRef = useRef(false);
@@ -85,6 +86,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
   useEffect(() => {
     viewTrackedRef.current = false;
+    setShowAllTags(false);
   }, [video.id]);
 
   useEffect(() => {
@@ -597,16 +599,54 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
       {}
       {isActive && video.tags && video.tags.length > 0 && (
-        <div className="fixed top-16 md:top-[72px] left-0 right-0 px-4 z-[40] pointer-events-none">
-          <div className="flex flex-wrap gap-2">
-            {video.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="px-2.5 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-poppins text-xs"
+        <div className="fixed top-16 md:top-[72px] left-0 right-0 px-4 z-[40]">
+          <div
+            className={`flex items-center gap-2 ${showAllTags ? 'overflow-x-auto scrollbar-hide' : ''}`}
+            style={{
+              pointerEvents: 'auto',
+              scrollBehavior: 'smooth'
+            }}
+          >
+            {showAllTags ? (
+              video.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs whitespace-nowrap flex-shrink-0"
+                >
+                  #{tag}
+                </span>
+              ))
+            ) : (
+              <>
+                <span className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs whitespace-nowrap">
+                  #{video.tags[0]}
+                </span>
+                {video.tags.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowAllTags(true);
+                    }}
+                    className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs hover:bg-white/30 transition-colors"
+                  >
+                    +{video.tags.length - 1} more
+                  </button>
+                )}
+              </>
+            )}
+            {showAllTags && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAllTags(false);
+                }}
+                className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs hover:bg-white/30 transition-colors flex-shrink-0"
               >
-                #{tag}
-              </span>
-            ))}
+                Show less
+              </button>
+            )}
           </div>
         </div>
       )}
