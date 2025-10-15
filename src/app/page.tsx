@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { feedAPI } from '@/lib/api';
 import { Video } from '@/types';
@@ -13,9 +13,11 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
+  const pageRef = useRef(1);
 
   useEffect(() => {
-    loadVideos();
+    loadVideos(1);
   }, []);
 
   useEffect(() => {
@@ -29,28 +31,37 @@ export default function Home() {
     };
   }, [activeVideoIndex, videos]);
 
-  const loadVideos = async (pageNum = 1) => {
+  const loadVideos = useCallback(async (pageNum: number) => {
+    if (loadingRef.current) return;
+
     try {
+      loadingRef.current = true;
       setIsLoading(true);
 
       const pageSize = pageNum === 1 ? 5 : 10;
       const response = await feedAPI.getTrending(pageNum, pageSize);
       if (response.status === 'success' && response.data?.videos) {
+        const newVideos = response.data.videos;
+
         if (pageNum === 1) {
-          setVideos(response.data.videos);
+          setVideos(newVideos);
         } else {
-          setVideos((prev) => [...prev, ...response.data.videos]);
+          setVideos((prev) => [...prev, ...newVideos]);
         }
-        setHasMore(response.data.videos.length === pageSize);
+
+        setHasMore(newVideos.length === pageSize);
+        pageRef.current = pageNum;
+        setPage(pageNum);
       }
     } catch (error) {
       console.error('Failed to load videos:', error);
     } finally {
       setIsLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, []);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollTop = container.scrollTop;
     const clientHeight = container.clientHeight;
@@ -59,13 +70,12 @@ export default function Home() {
     if (newIndex !== activeVideoIndex && newIndex < videos.length) {
       setActiveVideoIndex(newIndex);
 
-      if (newIndex >= videos.length - 3 && !isLoading && hasMore) {
-        const nextPage = page + 1;
-        setPage(nextPage);
+      if (newIndex >= videos.length - 3 && !loadingRef.current && hasMore) {
+        const nextPage = pageRef.current + 1;
         loadVideos(nextPage);
       }
     }
-  };
+  }, [activeVideoIndex, videos.length, hasMore, loadVideos]);
 
   return videos.length === 0 ? (
     <div className="h-screen flex items-center justify-center bg-black" />
