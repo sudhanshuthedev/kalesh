@@ -117,10 +117,8 @@ export default function ProfilePage() {
     loadUserVideos(1);
   };
 
-  const handleScroll = useCallback(() => {
-    if (!pageContainerRef.current) return;
-
-    const container = pageContainerRef.current;
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
     const scrollTop = container.scrollTop;
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
@@ -130,14 +128,6 @@ export default function ProfilePage() {
       loadUserVideos(nextPage);
     }
   }, [hasMore, loadUserVideos]);
-
-  useEffect(() => {
-    const container = pageContainerRef.current;
-    if (!container) return;
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
 
   if (isLoading && videos.length === 0) {
     return (
@@ -152,7 +142,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div ref={pageContainerRef} className="min-h-screen bg-black text-white pt-16 pb-20 md:pb-4 overflow-y-auto h-screen">
+    <div ref={pageContainerRef} onScroll={handleScroll} className="min-h-screen bg-black text-white pt-16 pb-20 md:pb-4 overflow-y-auto h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {}
         <div className="flex flex-col items-center mb-8">
