@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 interface ModalContextType {
   isAnyModalOpen: boolean;
@@ -25,26 +25,29 @@ interface ModalProviderProps {
 }
 
 export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
-  const [isAnyModalOpen, setAnyModalOpen] = useState(false);
   const [openModals, setOpenModals] = useState<Set<string>>(new Set());
 
-  const addModal = (modalId: string) => {
+  const isAnyModalOpen = openModals.size > 0;
+
+  const addModal = useCallback((modalId: string) => {
     setOpenModals(prev => {
       const newSet = new Set(prev);
       newSet.add(modalId);
-      setAnyModalOpen(newSet.size > 0);
       return newSet;
     });
-  };
+  }, []);
 
-  const removeModal = (modalId: string) => {
+  const removeModal = useCallback((modalId: string) => {
     setOpenModals(prev => {
       const newSet = new Set(prev);
       newSet.delete(modalId);
-      setAnyModalOpen(newSet.size > 0);
       return newSet;
     });
-  };
+  }, []);
+
+  const setAnyModalOpen = useCallback((isOpen: boolean) => {
+
+  }, []);
 
   return (
     <ModalContext.Provider

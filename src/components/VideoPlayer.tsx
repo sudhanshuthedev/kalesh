@@ -4,11 +4,13 @@ import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
 import CommentsModal from './CommentsModal';
+import DeleteVideoModal from './DeleteVideoModal';
+import { useRouter } from 'next/navigation';
 
 interface VideoPlayerProps {
   video: Video;
@@ -21,7 +23,8 @@ let userHasInteracted = false;
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreload = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(
     video.user_interaction?.liked || video.user_interaction?.is_liked || video.is_liked || false
   );
@@ -41,9 +44,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<HTMLDivElement>(null);
   const viewTrackedRef = useRef(false);
+  const isOwnVideo = user?.username === video.uploader_username;
 
   useEffect(() => {
     return () => {
@@ -498,12 +503,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     }
   }, [showMoreMenu]);
 
+  const handleDeleteVideo = () => {
+
+    router.push('/');
+  };
+
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full snap-start snap-always bg-black overflow-hidden"
       style={{
-        pointerEvents: (showCommentsModal || showMoreMenu) ? 'none' : 'auto',
+        pointerEvents: (showCommentsModal || showMoreMenu || showDeleteModal) ? 'none' : 'auto',
         scrollSnapStop: 'always'
       }}
     >
@@ -530,7 +540,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       />
 
       {}
-      {!showCommentsModal && !showReportModal && !showMoreMenu && (
+      {!showCommentsModal && !showReportModal && !showMoreMenu && !showDeleteModal && (
         <div
           ref={interactionLayerRef}
           className="absolute left-0 right-0 z-10"
@@ -762,35 +772,57 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
                   {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!isAuthenticated) {
-                      alert('Please login to report videos');
-                      setShowMoreMenu(false);
-                      return;
-                    }
-                    setShowReportModal(true);
-                    setTimeout(() => setShowMoreMenu(false), 100);
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!isAuthenticated) {
-                      alert('Please login to report videos');
-                      setShowMoreMenu(false);
-                      return;
-                    }
-                    setShowReportModal(true);
-                    setTimeout(() => setShowMoreMenu(false), 100);
-                  }}
-                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
-                >
-                  <IoFlagOutline size={20} />
-                  Report
-                </button>
+                {isOwnVideo ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowDeleteModal(true);
+                      setTimeout(() => setShowMoreMenu(false), 100);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setShowDeleteModal(true);
+                      setTimeout(() => setShowMoreMenu(false), 100);
+                    }}
+                    className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                  >
+                    <IoTrashOutline size={20} />
+                    Delete Video
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isAuthenticated) {
+                        alert('Please login to report videos');
+                        setShowMoreMenu(false);
+                        return;
+                      }
+                      setShowReportModal(true);
+                      setTimeout(() => setShowMoreMenu(false), 100);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isAuthenticated) {
+                        alert('Please login to report videos');
+                        setShowMoreMenu(false);
+                        return;
+                      }
+                      setShowReportModal(true);
+                      setTimeout(() => setShowMoreMenu(false), 100);
+                    }}
+                    className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                  >
+                    <IoFlagOutline size={20} />
+                    Report
+                  </button>
+                )}
               </motion.div>
             )}
           </div>
@@ -811,6 +843,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         <ReportModal
           videoId={video.id}
           onClose={() => setShowReportModal(false)}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteVideoModal
+          videoId={video.id}
+          videoTitle={video.title}
+          onClose={() => setShowDeleteModal(false)}
+          onDelete={handleDeleteVideo}
         />
       )}
     </div>

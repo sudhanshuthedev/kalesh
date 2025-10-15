@@ -213,10 +213,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   };
 
   const formatTimeAgo = (dateString: string) => {
+
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
+    if (seconds < 0) return 'just now';
     if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m`;
@@ -227,7 +229,9 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
     const weeks = Math.floor(days / 7);
     if (weeks < 4) return `${weeks}w`;
     const months = Math.floor(days / 30);
-    return `${months}mo`;
+    if (months < 12) return `${months}mo`;
+    const years = Math.floor(days / 365);
+    return `${years}y`;
   };
 
   const renderComment = (comment: Comment, isReply = false) => (

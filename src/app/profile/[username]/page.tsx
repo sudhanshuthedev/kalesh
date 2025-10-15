@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { authAPI, feedAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoPersonCircleOutline, IoPlaySharp, IoSettingsOutline } from 'react-icons/io5';
+import { IoPersonCircleOutline, IoPlaySharp, IoSettingsOutline, IoTrashOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
+import DeleteVideoModal from '@/components/DeleteVideoModal';
 
 interface UserProfile {
   id: string;
@@ -27,6 +28,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteModalVideo, setDeleteModalVideo] = useState<Video | null>(null);
   const isOwnProfile = currentUser?.username === username;
 
   useEffect(() => {
@@ -57,6 +59,11 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDeleteVideo = () => {
+
+    loadUserVideos();
   };
 
   if (isLoading) {
@@ -99,7 +106,11 @@ export default function ProfilePage() {
             </p>
           )}
           <p className="text-gray-500 font-poppins text-xs md:text-sm mb-3">
-            Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
+            Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }) : 'Unknown'}
           </p>
           {isOwnProfile && (
             <Link
@@ -129,7 +140,7 @@ export default function ProfilePage() {
                   key={video.id}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="relative aspect-[9/16] bg-app-gray cursor-pointer overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-shadow"
+                  className="relative aspect-[9/16] bg-app-gray cursor-pointer overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-shadow group"
                   onClick={() => router.push(`/kalesh/${video.id}`)}
                 >
                   {video.thumbnail_url ? (
@@ -143,9 +154,25 @@ export default function ProfilePage() {
                       <IoPlaySharp size={48} className="text-white opacity-50" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <IoPlaySharp size={56} className="text-white" />
                   </div>
+
+                  {}
+                  {isOwnProfile && (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      whileHover={{ scale: 1.1 }}
+                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteModalVideo(video);
+                      }}
+                    >
+                      <IoTrashOutline size={20} />
+                    </motion.button>
+                  )}
+
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-3">
                     <p className="text-white text-xs md:text-sm font-poppins font-medium line-clamp-2 mb-1">
                       {video.title}
@@ -165,6 +192,16 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {}
+      {deleteModalVideo && (
+        <DeleteVideoModal
+          videoId={deleteModalVideo.id}
+          videoTitle={deleteModalVideo.title}
+          onClose={() => setDeleteModalVideo(null)}
+          onDelete={handleDeleteVideo}
+        />
+      )}
     </div>
   );
 }
