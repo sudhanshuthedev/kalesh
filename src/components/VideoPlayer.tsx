@@ -515,21 +515,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     <div
       ref={containerRef}
       className="relative w-full h-full snap-start snap-always bg-black overflow-hidden"
-      style={{ pointerEvents: (showCommentsModal || showMoreMenu) ? 'none' : 'auto' }}
+      style={{
+        pointerEvents: (showCommentsModal || showMoreMenu) ? 'none' : 'auto',
+        scrollSnapStop: 'always'
+      }}
     >
-      {}
-      {video.thumbnail_url && isLoading && isActive && (
-        <div
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            backgroundImage: `url(${video.thumbnail_url})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat'
-          }}
-        />
-      )}
-
       {}
       <video
         ref={videoRef}
@@ -537,6 +527,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         loop
         playsInline
         muted
+        poster={video.thumbnail_url || undefined}
         onLoadedData={() => {
           if (isLoading) {
             setIsLoading(false);
