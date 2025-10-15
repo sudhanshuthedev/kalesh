@@ -149,7 +149,7 @@ export const commentAPI = {
     return response.data;
   },
   replyToComment: async (videoId: string, commentId: string, text: string) => {
-    const response = await api.post(`/comments/videos/${videoId}/${commentId}/reply`, { text });
+    const response = await api.post(`/comments/${commentId}/reply`, { text });
     return response.data;
   },
   likeComment: async (commentId: string) => {
