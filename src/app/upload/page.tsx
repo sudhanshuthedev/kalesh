@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { videoAPI } from '@/lib/api';
+import { videoAPI, tagAPI } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoCloudUploadOutline, IoVideocamOutline, IoCheckmarkCircle, IoClose } from 'react-icons/io5';
 
@@ -13,7 +13,11 @@ export default function UploadPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [tags, setTags] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [trendingTags, setTrendingTags] = useState<Array<{ tag: string; count: number }>>([]);
+  const [suggestedTags, setSuggestedTags] = useState<Array<{ tag: string; count: number }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -24,11 +28,71 @@ export default function UploadPage() {
   const [processingStatus, setProcessingStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/');
     }
   }, [isAuthenticated, authLoading, router]);
+
+  useEffect(() => {
+    loadTrendingTags();
+  }, []);
+
+  useEffect(() => {
+    if (tagInput.length >= 2) {
+      loadSuggestedTags(tagInput);
+    } else {
+      setSuggestedTags([]);
+      setShowSuggestions(false);
+    }
+  }, [tagInput]);
+
+  const loadTrendingTags = async () => {
+    try {
+      const response = await tagAPI.trending(10);
+      if (response.status === 'success' && response.data?.tags) {
+        setTrendingTags(response.data.tags);
+      }
+    } catch (error) {
+      console.error('Failed to load trending tags:', error);
+    }
+  };
+
+  const loadSuggestedTags = async (query: string) => {
+    try {
+      const response = await tagAPI.suggest(query, 5);
+      if (response.status === 'success' && response.data?.tags) {
+        setSuggestedTags(response.data.tags);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error('Failed to load suggested tags:', error);
+    }
+  };
+
+  const addTag = (tag: string) => {
+    const cleanTag = tag.trim().toLowerCase();
+    if (cleanTag && !selectedTags.includes(cleanTag) && selectedTags.length < 10) {
+      setSelectedTags([...selectedTags, cleanTag]);
+      setTagInput('');
+      setShowSuggestions(false);
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setSelectedTags(selectedTags.filter(t => t !== tag));
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      if (tagInput.trim()) {
+        addTag(tagInput);
+      }
+    } else if (e.key === 'Backspace' && !tagInput && selectedTags.length > 0) {
+      removeTag(selectedTags[selectedTags.length - 1]);
+    }
+  };
 
   React.useEffect(() => {
     if (!uploadedVideoId || processingStatus === 'completed' || processingStatus === 'failed') {
@@ -96,7 +160,7 @@ export default function UploadPage() {
       formData.append('video', videoFile);
       formData.append('title', title);
       if (description) formData.append('description', description);
-      if (tags) formData.append('tags', tags);
+      if (selectedTags.length > 0) formData.append('tags', selectedTags.join(','));
 
       const response = await videoAPI.upload(formData);
       if (response.status === 'success') {
@@ -278,14 +342,86 @@ export default function UploadPage() {
 
           {}
           <div>
-            <label className="block font-poppins text-sm mb-2">Tags (comma separated)</label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
-              placeholder="e.g. funny, gaming, tutorial"
-            />
+            <label className="block font-poppins text-sm mb-2">
+              Tags {selectedTags.length > 0 && <span className="text-gray-400">({selectedTags.length}/10)</span>}
+            </label>
+
+            {}
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedTags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="flex items-center gap-1 px-3 py-1 bg-white/20 border border-white/30 text-white font-poppins text-sm"
+                  >
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 hover:text-red-400 transition-colors"
+                    >
+                      <IoClose size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {}
+            <div className="relative">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagInputKeyDown}
+                onFocus={() => setShowSuggestions(suggestedTags.length > 0)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+                placeholder="Type to search tags or press Enter to add"
+                disabled={selectedTags.length >= 10}
+              />
+
+              {}
+              {showSuggestions && suggestedTags.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-app-gray border border-white/20 z-10 max-h-48 overflow-y-auto"
+                >
+                  {suggestedTags.map((item) => (
+                    <button
+                      key={item.tag}
+                      type="button"
+                      onClick={() => addTag(item.tag)}
+                      className="w-full text-left px-4 py-2 hover:bg-white/10 font-poppins text-sm text-white flex items-center justify-between"
+                    >
+                      <span>#{item.tag}</span>
+                      <span className="text-xs text-gray-400">{item.count} videos</span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </div>
+
+            {}
+            {trendingTags.length > 0 && (
+              <div className="mt-3">
+                <p className="text-xs text-gray-400 font-poppins mb-2">Trending tags:</p>
+                <div className="flex flex-wrap gap-2">
+                  {trendingTags.slice(0, 8).map((item) => (
+                    <button
+                      key={item.tag}
+                      type="button"
+                      onClick={() => addTag(item.tag)}
+                      disabled={selectedTags.includes(item.tag) || selectedTags.length >= 10}
+                      className="px-2 py-1 bg-white/10 border border-white/20 text-white font-poppins text-xs hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      #{item.tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {error && (

@@ -609,18 +609,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           >
             {showAllTags ? (
               video.tags.map((tag, index) => (
-                <span
+                <Link
                   key={index}
-                  className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs whitespace-nowrap flex-shrink-0"
+                  href={`/tag/${encodeURIComponent(tag)}`}
+                  className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs whitespace-nowrap flex-shrink-0 hover:bg-white/40 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   #{tag}
-                </span>
+                </Link>
               ))
             ) : (
               <>
-                <span className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs whitespace-nowrap">
+                <Link
+                  href={`/tag/${encodeURIComponent(video.tags[0])}`}
+                  className="px-2 py-1 bg-white/20 border border-white/30 text-white font-poppins text-xs whitespace-nowrap hover:bg-white/40 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   #{video.tags[0]}
-                </span>
+                </Link>
                 {video.tags.length > 1 && (
                   <button
                     onClick={(e) => {

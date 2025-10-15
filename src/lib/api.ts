@@ -170,5 +170,20 @@ export const commentAPI = {
   },
 };
 
+export const tagAPI = {
+  explore: async (tag: string, page = 1, pageSize = 10) => {
+    const response = await api.get(`/tags/explore?tag=${encodeURIComponent(tag)}&page=${page}&page_size=${pageSize}`);
+    return response.data;
+  },
+  suggest: async (query: string, limit = 10) => {
+    const response = await api.get(`/tags/suggest?query=${encodeURIComponent(query)}&limit=${limit}`);
+    return response.data;
+  },
+  trending: async (limit = 10) => {
+    const response = await api.get(`/tags/trending?limit=${limit}`);
+    return response.data;
+  },
+};
+
 export default api;
 
