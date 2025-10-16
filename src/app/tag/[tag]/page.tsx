@@ -19,9 +19,11 @@ export default function TagPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
+  const hasScrolledRef = useRef(false);
 
   useEffect(() => {
     loadVideos(1);
+    hasScrolledRef.current = false;
   }, [tag]);
 
   useEffect(() => {
@@ -44,14 +46,14 @@ export default function TagPage() {
   }, [tag]);
 
   useEffect(() => {
-    if (videos.length > 0 && videos[activeVideoIndex]) {
+    if (videos.length > 0 && videos[activeVideoIndex] && hasScrolledRef.current) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | #${tag} | Kalesh`;
 
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', `/kalesh/${activeVideo.id}`);
       }
-    } else {
+    } else if (!hasScrolledRef.current) {
       document.title = `#${tag} - Kalesh`;
     }
   }, [activeVideoIndex, videos, tag]);
@@ -90,6 +92,10 @@ export default function TagPage() {
     const container = e.currentTarget;
     const scrollTop = container.scrollTop;
     const clientHeight = container.clientHeight;
+
+    if (!hasScrolledRef.current) {
+      hasScrolledRef.current = true;
+    }
 
     const newIndex = Math.round(scrollTop / clientHeight);
     if (newIndex !== activeVideoIndex && newIndex < videos.length) {

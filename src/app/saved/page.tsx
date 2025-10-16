@@ -19,6 +19,7 @@ export default function SavedPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
+  const hasScrolledRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -52,14 +53,14 @@ export default function SavedPage() {
   }, []);
 
   useEffect(() => {
-    if (videos.length > 0 && videos[activeVideoIndex]) {
+    if (videos.length > 0 && videos[activeVideoIndex] && hasScrolledRef.current) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Saved Videos | Kalesh`;
 
       if (typeof window !== 'undefined') {
         window.history.replaceState(null, '', `/kalesh/${activeVideo.id}`);
       }
-    } else {
+    } else if (!hasScrolledRef.current) {
       document.title = 'Saved Videos - Kalesh';
     }
   }, [activeVideoIndex, videos]);
@@ -98,6 +99,10 @@ export default function SavedPage() {
     const container = e.currentTarget;
     const scrollTop = container.scrollTop;
     const clientHeight = container.clientHeight;
+
+    if (!hasScrolledRef.current) {
+      hasScrolledRef.current = true;
+    }
 
     const newIndex = Math.round(scrollTop / clientHeight);
     if (newIndex !== activeVideoIndex && newIndex < videos.length) {

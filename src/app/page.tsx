@@ -22,6 +22,7 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
+  const hasScrolledRef = useRef(false);
 
   useEffect(() => {
     loadVideos(1);
@@ -39,6 +40,7 @@ export default function Home() {
       setPage(1);
       pageRef.current = 1;
       setHasMore(true);
+      hasScrolledRef.current = false;
 
       await loadVideos(1);
 
@@ -71,7 +73,7 @@ export default function Home() {
   }, [showFeedSelector]);
 
   useEffect(() => {
-    if (videos.length > 0 && videos[activeVideoIndex]) {
+    if (videos.length > 0 && videos[activeVideoIndex] && hasScrolledRef.current) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Kalesh`;
 
@@ -81,7 +83,9 @@ export default function Home() {
     }
 
     return () => {
-      document.title = 'Kalesh - Watch Kaleshi Videos';
+      if (hasScrolledRef.current) {
+        document.title = 'Kalesh - Watch Kaleshi Videos';
+      }
     };
   }, [activeVideoIndex, videos]);
 
@@ -131,6 +135,10 @@ export default function Home() {
     const container = e.currentTarget;
     const scrollTop = container.scrollTop;
     const clientHeight = container.clientHeight;
+
+    if (!hasScrolledRef.current) {
+      hasScrolledRef.current = true;
+    }
 
     if (scrollTop > 100 && !showFeedSelector) {
       setShowFeedSelector(true);
