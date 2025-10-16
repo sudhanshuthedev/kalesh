@@ -5,10 +5,12 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { feedAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 type FeedType = 'trending' | 'recent' | 'discover';
 
 export default function Home() {
+  const router = useRouter();
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -72,6 +74,10 @@ export default function Home() {
     if (videos.length > 0 && videos[activeVideoIndex]) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Kalesh`;
+
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', `/kalesh/${activeVideo.id}`);
+      }
     }
 
     return () => {
@@ -156,12 +162,12 @@ export default function Home() {
           pointerEvents: showFeedSelector ? 'auto' : 'none'
         }}
         transition={{ duration: 0.2 }}
-        className="fixed top-3 left-1/2 transform -translate-x-1/2 z-[150]"
+        className="fixed top-3 left-4 z-[150]"
       >
         <div className="flex items-center gap-1 bg-black/50 backdrop-blur-md rounded-lg p-1 border border-white/10">
           <button
             onClick={() => setFeedType('trending')}
-            className={`px-3 py-1.5 font-poppins text-xs transition-all rounded-md ${
+            className={`px-3 py-1.5 font-poppins text-xs transition-colors rounded-md whitespace-nowrap ${
               feedType === 'trending'
                 ? 'bg-white text-black font-medium'
                 : 'text-white hover:bg-white/10'
@@ -171,7 +177,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setFeedType('recent')}
-            className={`px-3 py-1.5 font-poppins text-xs transition-all rounded-md ${
+            className={`px-3 py-1.5 font-poppins text-xs transition-colors rounded-md whitespace-nowrap ${
               feedType === 'recent'
                 ? 'bg-white text-black font-medium'
                 : 'text-white hover:bg-white/10'
@@ -181,7 +187,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setFeedType('discover')}
-            className={`px-3 py-1.5 font-poppins text-xs transition-all rounded-md ${
+            className={`px-3 py-1.5 font-poppins text-xs transition-colors rounded-md whitespace-nowrap ${
               feedType === 'discover'
                 ? 'bg-white text-black font-medium'
                 : 'text-white hover:bg-white/10'

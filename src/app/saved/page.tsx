@@ -55,6 +55,10 @@ export default function SavedPage() {
     if (videos.length > 0 && videos[activeVideoIndex]) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Saved Videos | Kalesh`;
+
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', `/kalesh/${activeVideo.id}`);
+      }
     } else {
       document.title = 'Saved Videos - Kalesh';
     }
