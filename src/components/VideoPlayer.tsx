@@ -652,7 +652,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         <div
           ref={interactionLayerRef}
           className="absolute left-0 right-0 z-10"
-          style={{ top: '56px', bottom: '64px', touchAction: 'pan-y' }}
+          style={{ top: '56px', bottom: '64px' }}
           onMouseDown={handlePressStart}
           onMouseUp={handlePressEnd}
           onClick={handleDoubleTap}
@@ -689,10 +689,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none flex flex-col items-center gap-2"
+          className="fixed top-16 right-4 md:top-20 md:right-6 z-[60] pointer-events-none flex flex-col items-center gap-1"
         >
-          <p className="text-white font-poppins text-sm drop-shadow-2xl">Click to unmute</p>
-          <IoVolumeMuteOutline size={48} className="text-white drop-shadow-2xl" />
+          <IoVolumeMuteOutline size={32} className="text-white drop-shadow-2xl" />
+          <p className="text-white font-poppins text-xs drop-shadow-2xl">Click to unmute</p>
         </motion.div>
       )}
 
