@@ -632,7 +632,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
              <p className="text-white font-poppins text-lg mb-6">This content might disturb you</p>
             <button
               onClick={() => setShowNsfwContent(true)}
-              className="bg-white text-black px-8 py-3 rounded-lg font-poppins font-semibold hover:bg-gray-200 transition-colors mb-4"
+              className="text-white font-poppins text-base hover:text-gray-300 transition-colors underline mb-4"
             >
               Show Content
             </button>
