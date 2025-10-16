@@ -5,13 +5,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
+import SearchModal from './SearchModal';
 import { motion } from 'framer-motion';
-import { IoHomeSharp, IoPersonSharp, IoLogOutOutline, IoBookmarkSharp, IoAdd, IoSettingsOutline } from 'react-icons/io5';
+import { IoHomeSharp, IoPersonSharp, IoLogOutOutline, IoBookmarkSharp, IoAdd, IoSettingsOutline, IoSearchSharp } from 'react-icons/io5';
 import { usePathname } from 'next/navigation';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
 
@@ -53,6 +55,14 @@ const Header = () => {
 
         {}
         <div className="flex items-center gap-6">
+          {}
+          <button
+            onClick={() => setShowSearchModal(true)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <IoSearchSharp size={22} />
+          </button>
+
           {}
           <Link
             href="/"
@@ -172,6 +182,7 @@ const Header = () => {
       </motion.header>
 
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      {showSearchModal && <SearchModal onClose={() => setShowSearchModal(false)} />}
     </>
   );
 };

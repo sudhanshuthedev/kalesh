@@ -141,6 +141,14 @@ export const feedAPI = {
       return { status: 'success', data: { videos: [] }, message: 'No videos available' };
     }
   },
+  search: async (query: string, page = 1, pageSize = 20) => {
+    try {
+      const response = await api.get(`/feeds/search?query=${encodeURIComponent(query)}&page=${page}&page_size=${pageSize}`);
+      return response.data;
+    } catch (error: any) {
+      return { status: 'success', data: { videos: [], users: [], total_videos: 0, total_users: 0 }, message: 'No results found' };
+    }
+  },
 };
 
 export const commentAPI = {
