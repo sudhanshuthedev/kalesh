@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { feedAPI } from '@/lib/api';
 import { Video } from '@/types';
@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 type FeedType = 'trending' | 'recent' | 'discover';
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [videos, setVideos] = useState<Video[]>([]);
@@ -243,3 +243,10 @@ export default function Home() {
   );
 }
 
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-black" />}>
+      <HomeContent />
+    </Suspense>
+  );
+}

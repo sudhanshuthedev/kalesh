@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import { tagAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
 
-export default function TagPage() {
+function TagPageContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -176,3 +176,10 @@ export default function TagPage() {
   );
 }
 
+export default function TagPage() {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-black" />}>
+      <TagPageContent />
+    </Suspense>
+  );
+}

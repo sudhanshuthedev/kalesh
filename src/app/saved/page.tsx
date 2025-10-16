@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -8,7 +8,7 @@ import { feedAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
 
-export default function SavedPage() {
+function SavedPageContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -178,3 +178,10 @@ export default function SavedPage() {
   );
 }
 
+export default function SavedPage() {
+  return (
+    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-black" />}>
+      <SavedPageContent />
+    </Suspense>
+  );
+}
