@@ -37,11 +37,13 @@ const MobileNav = () => {
   };
 
   const handleHomeClick = (e: React.MouseEvent) => {
-    if (pathname === '/') {
+    if (pathname === '/' || pathname.startsWith('/kalesh/')) {
       e.preventDefault();
       window.location.reload();
     }
   };
+
+  const isHomePage = pathname === '/' || pathname.startsWith('/kalesh/');
 
   return (
     <>
@@ -56,10 +58,10 @@ const MobileNav = () => {
           href="/"
           onClick={handleHomeClick}
           className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${
-            pathname === '/' ? 'text-white' : 'text-gray-500'
+            isHomePage ? 'text-white' : 'text-gray-500'
           }`}
         >
-          {pathname === '/' ? <IoHomeSharp size={26} /> : <IoHome size={26} />}
+          {isHomePage ? <IoHomeSharp size={26} /> : <IoHome size={26} />}
           <span className="text-[10px] font-poppins">Home</span>
         </Link>
 

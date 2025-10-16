@@ -74,6 +74,13 @@ export default function Home() {
     if (videos.length > 0 && videos[activeVideoIndex]) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Kalesh`;
+
+      if (typeof window !== 'undefined') {
+        const newUrl = `/kalesh/${activeVideo.id}`;
+        if (window.location.pathname !== newUrl) {
+          window.history.replaceState(null, '', newUrl);
+        }
+      }
     }
 
     return () => {

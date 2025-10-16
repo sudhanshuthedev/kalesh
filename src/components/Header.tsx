@@ -19,11 +19,13 @@ const Header = () => {
   const pathname = usePathname();
 
   const handleHomeClick = (e: React.MouseEvent) => {
-    if (pathname === '/') {
+    if (pathname === '/' || pathname.startsWith('/kalesh/')) {
       e.preventDefault();
       window.location.reload();
     }
   };
+
+  const isHomePage = pathname === '/' || pathname.startsWith('/kalesh/');
 
   React.useEffect(() => {
     const handleClickOutside = () => {
@@ -76,7 +78,7 @@ const Header = () => {
             href="/"
             onClick={handleHomeClick}
             className={`hidden md:flex items-center gap-2 transition-colors ${
-              pathname === '/' ? 'text-white' : 'text-gray-400 hover:text-white'
+              isHomePage ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <IoHomeSharp size={20} />

@@ -47,6 +47,13 @@ export default function TagPage() {
     if (videos.length > 0 && videos[activeVideoIndex]) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | #${tag} | Kalesh`;
+
+      if (typeof window !== 'undefined') {
+        const newUrl = `/kalesh/${activeVideo.id}`;
+        if (window.location.pathname !== newUrl) {
+          window.history.replaceState(null, '', newUrl);
+        }
+      }
     } else {
       document.title = `#${tag} - Kalesh`;
     }
