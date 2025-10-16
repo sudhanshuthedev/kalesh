@@ -37,13 +37,13 @@ const MobileNav = () => {
   };
 
   const handleHomeClick = (e: React.MouseEvent) => {
-    if (pathname === '/' || pathname.startsWith('/kalesh/')) {
+    if (pathname === '/') {
       e.preventDefault();
-      window.location.reload();
+      window.location.href = '/';
     }
   };
 
-  const isHomePage = pathname === '/' || pathname.startsWith('/kalesh/');
+  const isHomePage = pathname === '/';
 
   return (
     <>

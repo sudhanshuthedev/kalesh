@@ -94,7 +94,12 @@ export default function ProfilePage() {
         if (pageNum === 1) {
           setVideos(newVideos);
         } else {
-          setVideos((prev) => [...prev, ...newVideos]);
+          setVideos((prev) => {
+
+            const existingIds = new Set(prev.map((v: Video) => v.id));
+            const uniqueNewVideos = newVideos.filter((v: Video) => !existingIds.has(v.id));
+            return [...prev, ...uniqueNewVideos];
+          });
         }
 
         setHasMore(newVideos.length === pageSize);

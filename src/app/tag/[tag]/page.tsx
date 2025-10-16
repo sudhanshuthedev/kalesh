@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import { tagAPI } from '@/lib/api';
 import { Video } from '@/types';
@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 export default function TagPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const tag = decodeURIComponent(params.tag as string);
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +22,14 @@ export default function TagPage() {
   const pageRef = useRef(1);
 
   useEffect(() => {
+    const videoId = searchParams.get('v');
+    if (videoId) {
+      router.push(`/kalesh/${videoId}`);
+      return;
+    }
+
     loadVideos(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tag]);
 
   useEffect(() => {
@@ -49,8 +57,8 @@ export default function TagPage() {
       document.title = `${activeVideo.title} | #${tag} | Kalesh`;
 
       if (typeof window !== 'undefined') {
-        const newUrl = `/kalesh/${activeVideo.id}`;
-        if (window.location.pathname !== newUrl) {
+        const newUrl = `/tag/${tag}?v=${activeVideo.id}`;
+        if (window.location.search !== `?v=${activeVideo.id}`) {
           window.history.replaceState(null, '', newUrl);
         }
       }
@@ -74,7 +82,12 @@ export default function TagPage() {
         if (pageNum === 1) {
           setVideos(newVideos);
         } else {
-          setVideos((prev) => [...prev, ...newVideos]);
+          setVideos((prev) => {
+
+            const existingIds = new Set(prev.map((v: Video) => v.id));
+            const uniqueNewVideos = newVideos.filter((v: Video) => !existingIds.has(v.id));
+            return [...prev, ...uniqueNewVideos];
+          });
         }
 
         setHasMore(newVideos.length === pageSize);

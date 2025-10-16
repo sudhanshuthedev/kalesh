@@ -5,12 +5,13 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { feedAPI } from '@/lib/api';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type FeedType = 'trending' | 'recent' | 'discover';
 
 export default function Home() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -24,7 +25,14 @@ export default function Home() {
   const pageRef = useRef(1);
 
   useEffect(() => {
+    const videoId = searchParams.get('v');
+    if (videoId) {
+      router.push(`/kalesh/${videoId}`);
+      return;
+    }
+
     loadVideos(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -76,8 +84,8 @@ export default function Home() {
       document.title = `${activeVideo.title} | Kalesh`;
 
       if (typeof window !== 'undefined') {
-        const newUrl = `/kalesh/${activeVideo.id}`;
-        if (window.location.pathname !== newUrl) {
+        const newUrl = `/?v=${activeVideo.id}`;
+        if (window.location.search !== `?v=${activeVideo.id}`) {
           window.history.replaceState(null, '', newUrl);
         }
       }
@@ -115,7 +123,12 @@ export default function Home() {
         if (pageNum === 1) {
           setVideos(newVideos);
         } else {
-          setVideos((prev) => [...prev, ...newVideos]);
+          setVideos((prev) => {
+
+            const existingIds = new Set(prev.map((v: Video) => v.id));
+            const uniqueNewVideos = newVideos.filter((v: Video) => !existingIds.has(v.id));
+            return [...prev, ...uniqueNewVideos];
+          });
         }
 
         setHasMore(newVideos.length === pageSize);

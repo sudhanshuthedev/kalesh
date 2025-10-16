@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import VideoPlayer from '@/components/VideoPlayer';
 import { feedAPI } from '@/lib/api';
 import { Video } from '@/types';
@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 export default function SavedPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -28,8 +29,15 @@ export default function SavedPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      const videoId = searchParams.get('v');
+      if (videoId) {
+        router.push(`/kalesh/${videoId}`);
+        return;
+      }
+
       loadVideos(1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -57,8 +65,8 @@ export default function SavedPage() {
       document.title = `${activeVideo.title} | Saved Videos | Kalesh`;
 
       if (typeof window !== 'undefined') {
-        const newUrl = `/kalesh/${activeVideo.id}`;
-        if (window.location.pathname !== newUrl) {
+        const newUrl = `/saved?v=${activeVideo.id}`;
+        if (window.location.search !== `?v=${activeVideo.id}`) {
           window.history.replaceState(null, '', newUrl);
         }
       }
@@ -82,7 +90,12 @@ export default function SavedPage() {
         if (pageNum === 1) {
           setVideos(newVideos);
         } else {
-          setVideos((prev) => [...prev, ...newVideos]);
+          setVideos((prev) => {
+
+            const existingIds = new Set(prev.map((v: Video) => v.id));
+            const uniqueNewVideos = newVideos.filter((v: Video) => !existingIds.has(v.id));
+            return [...prev, ...uniqueNewVideos];
+          });
         }
 
         setHasMore(newVideos.length === pageSize);
