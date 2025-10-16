@@ -162,7 +162,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     if ((video.playlist_url || videoUrl.includes('.m3u8'))) {
       if (Hls.isSupported()) {
         const hls = new Hls({
-          debug: true,
+          debug: false,
           enableWorker: true,
           startLevel: -1,
           autoStartLoad: true,
@@ -171,7 +171,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           maxMaxBufferLength: 600,
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
-          abrEwmaDefaultEstimate: 1500000,
+          abrEwmaDefaultEstimate: 500000,
+          abrEwmaFastLive: 3.0,
+          abrEwmaSlowLive: 9.0,
+          abrBandWidthFactor: 0.9,
+          abrBandWidthUpFactor: 0.7,
           lowLatencyMode: false,
           backBufferLength: 90,
           progressive: true,
@@ -179,7 +183,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
         hlsRef.current = hls;
 
-        console.log('Loading HLS video:', videoUrl);
         hls.loadSource(videoUrl);
         hls.attachMedia(videoElement);
 
@@ -1080,6 +1083,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           />
         </div>
       )}
+
     </div>
   );
 };
