@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline, IoInformationCircle } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -786,22 +786,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {isActive && (
         <div className="fixed md:absolute bottom-24 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-[40] pointer-events-none">
           <div className="max-w-md md:max-w-xl">
-            <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
-              <div className="flex items-center gap-1.5">
-                {video.uploader_profile_image_url ? (
-                  <img
-                    src={video.uploader_profile_image_url}
-                    alt={video.uploader_username}
-                    className="w-[26px] h-[26px] md:w-7 md:h-7 rounded-full object-cover border border-white/20"
-                  />
-                ) : (
-                  <IoPersonCircleOutline size={26} className="text-white md:w-7 md:h-7" />
-                )}
-                <span className="text-white font-poppins font-semibold text-sm md:text-sm">
-                  @{video.uploader_username}
-                </span>
-              </div>
-            </Link>
+            <div className="flex items-center gap-3 mb-1.5 md:mb-1.5">
+              <Link href={`/profile/${video.uploader_username}`} className="inline-block pointer-events-auto">
+                <div className="flex items-center gap-1.5">
+                  {video.uploader_profile_image_url ? (
+                    <img
+                      src={video.uploader_profile_image_url}
+                      alt={video.uploader_username}
+                      className="w-[26px] h-[26px] md:w-7 md:h-7 rounded-full object-cover border border-white/20"
+                    />
+                  ) : (
+                    <IoPersonCircleOutline size={26} className="text-white md:w-7 md:h-7" />
+                  )}
+                  <span className="text-white font-poppins font-semibold text-sm md:text-sm">
+                    @{video.uploader_username}
+                  </span>
+                </div>
+              </Link>
+              {video.is_nsfw && (
+                <Link href="/profile/edit" className="pointer-events-auto flex items-center gap-1">
+                  <IoInformationCircle size={14} className="text-red-500 flex-shrink-0" />
+                  <span className="text-white/70 font-poppins text-xs hover:text-white transition-colors">
+                    Don't Show NSFW
+                  </span>
+                </Link>
+              )}
+            </div>
             <div>
               <h3
                 className={`text-white font-poppins text-sm md:text-base font-semibold mb-1 md:mb-1 ${!showFullDescription ? 'line-clamp-1' : ''} pointer-events-auto cursor-pointer`}
@@ -1041,15 +1051,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
-      {isActive && video.is_nsfw && (
-        <div className="fixed bottom-16 md:bottom-20 left-1/2 transform -translate-x-1/2 z-[45] pointer-events-auto">
-          <Link href="/profile/edit">
-            <button className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white font-poppins text-xs hover:bg-white/20 transition-colors">
-              Don't Show NSFW
-            </button>
-          </Link>
-        </div>
-      )}
 
       {}
       {isActive && isPlaying && (
