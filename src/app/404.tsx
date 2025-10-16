@@ -27,7 +27,7 @@ function NotFoundContent() {
   );
 }
 
-export default function NotFound() {
+export default function NotFoundPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-black flex items-center justify-center">
