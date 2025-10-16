@@ -5,7 +5,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ModalProvider } from '@/contexts/ModalContext';
 import Header from '@/components/Header';
 import MobileNav from '@/components/MobileNav';
-import LoadingBar from '@/components/LoadingBar';
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -18,6 +17,7 @@ export const metadata: Metadata = {
   description: 'Watch and share Kaleshi videos - The ultimate video platform for trending content',
   keywords: 'Kalesh, Kaleshi, videos, watch videos, share videos, video platform, trending videos, viral videos',
   authors: [{ name: 'Kalesh' }],
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   themeColor: '#000000',
   openGraph: {
     title: 'Kalesh - Watch Kaleshi Videos',
@@ -32,12 +32,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -48,7 +42,6 @@ export default function RootLayout({
       <body className="bg-black font-poppins antialiased">
         <ModalProvider>
           <AuthProvider>
-            <LoadingBar />
             <Header />
             <main className="w-full">{children}</main>
             <MobileNav />

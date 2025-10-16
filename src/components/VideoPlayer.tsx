@@ -164,18 +164,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         const hls = new Hls({
           debug: false,
           enableWorker: true,
-          startLevel: -1,
+          startLevel: -1, // Auto-select initial quality
           autoStartLoad: true,
           capLevelToPlayerSize: true,
           maxBufferLength: shouldPreload ? 20 : (isActive ? 30 : 5),
           maxMaxBufferLength: 600,
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
-          abrEwmaDefaultEstimate: 500000,
-          abrEwmaFastLive: 3.0,
-          abrEwmaSlowLive: 9.0,
-          abrBandWidthFactor: 0.9,
-          abrBandWidthUpFactor: 0.7,
+          abrEwmaDefaultEstimate: 500000, // Lower initial estimate for better adaptation
+          abrEwmaFastLive: 3.0, // Faster ABR adaptation
+          abrEwmaSlowLive: 9.0, // Better stability for ABR decisions
+          abrBandWidthFactor: 0.9, // Be slightly conservative with bandwidth estimates
+          abrBandWidthUpFactor: 0.7, // Allow faster up-switching
           lowLatencyMode: false,
           backBufferLength: 90,
           progressive: true,
@@ -1083,7 +1083,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           />
         </div>
       )}
-
+      
     </div>
   );
 };
