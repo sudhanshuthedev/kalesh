@@ -622,6 +622,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         }}
         preload={isActive || shouldPreload ? "auto" : "none"}
         crossOrigin="anonymous"
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onClick={handleDoubleTap}
+        onMouseLeave={() => {
+          if (pressTimer.current) {
+            clearTimeout(pressTimer.current);
+            pressTimer.current = null;
+          }
+        }}
+        onTouchStart={handlePressStart}
+        onTouchEnd={(e) => {
+          handlePressEnd(e);
+          handleDoubleTap(e);
+        }}
       />
 
       {}
@@ -651,22 +665,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {!showCommentsModal && !showReportModal && !showMoreMenu && !showDeleteModal && (
         <div
           ref={interactionLayerRef}
-          className="absolute left-0 right-0 z-10"
+          className="absolute left-0 right-0 z-10 pointer-events-none"
           style={{ top: '56px', bottom: '64px' }}
-          onMouseDown={handlePressStart}
-          onMouseUp={handlePressEnd}
-          onClick={handleDoubleTap}
-          onMouseLeave={() => {
-            if (pressTimer.current) {
-              clearTimeout(pressTimer.current);
-              pressTimer.current = null;
-            }
-          }}
-          onTouchStart={handlePressStart}
-          onTouchEnd={(e) => {
-            handlePressEnd(e);
-            handleDoubleTap(e);
-          }}
         />
       )}
 
