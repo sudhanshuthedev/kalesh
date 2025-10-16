@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ModalProvider } from '@/contexts/ModalContext';
 import Header from '@/components/Header';
 import MobileNav from '@/components/MobileNav';
+import LoadingBar from '@/components/LoadingBar';
 
 const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="bg-black font-poppins antialiased">
         <ModalProvider>
           <AuthProvider>
+            <LoadingBar />
             <Header />
             <main className="w-full">{children}</main>
             <MobileNav />

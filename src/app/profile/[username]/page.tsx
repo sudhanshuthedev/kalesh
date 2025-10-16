@@ -31,6 +31,7 @@ export default function ProfilePage() {
   const [deleteModalVideo, setDeleteModalVideo] = useState<Video | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [totalVideos, setTotalVideos] = useState(0);
   const loadingRef = useRef(false);
   const pageRef = useRef(1);
   const pageContainerRef = useRef<HTMLDivElement>(null);
@@ -91,11 +92,14 @@ export default function ProfilePage() {
       if (response.status === 'success' && response.data?.videos) {
         const newVideos = response.data.videos;
 
+        if (response.data.total !== undefined) {
+          setTotalVideos(response.data.total);
+        }
+
         if (pageNum === 1) {
           setVideos(newVideos);
         } else {
           setVideos((prev) => {
-
             const existingIds = new Set(prev.map((v: Video) => v.id));
             const uniqueNewVideos = newVideos.filter((v: Video) => !existingIds.has(v.id));
             return [...prev, ...uniqueNewVideos];
@@ -194,7 +198,7 @@ export default function ProfilePage() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-poppins font-semibold">Videos</h2>
-            <span className="text-gray-400 font-poppins text-sm">{videos.length} videos</span>
+            <span className="text-gray-400 font-poppins text-sm">{totalVideos} videos</span>
           </div>
           {videos.length === 0 && !isLoading ? (
             <div className="text-center py-12">
