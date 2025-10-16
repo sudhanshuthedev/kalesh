@@ -21,7 +21,12 @@ const Header = () => {
   const handleHomeClick = (e: React.MouseEvent) => {
     if (pathname === '/') {
       e.preventDefault();
-      window.location.href = '/';
+
+      if (window.location.search) {
+        window.history.replaceState(null, '', '/');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

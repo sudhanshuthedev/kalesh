@@ -27,8 +27,14 @@ function HomeContent() {
   useEffect(() => {
     const videoId = searchParams.get('v');
     if (videoId) {
-      router.push(`/kalesh/${videoId}`);
-      return;
+
+      if (videoId.match(/^[0-9a-f]{24}$/)) {
+        router.push(`/kalesh/${videoId}`);
+        return;
+      } else {
+
+        window.history.replaceState(null, '', '/');
+      }
     }
 
     loadVideos(1);
@@ -83,7 +89,8 @@ function HomeContent() {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Kalesh`;
 
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && !isTransitioning) {
+
         const newUrl = `/?v=${activeVideo.id}`;
         if (window.location.search !== `?v=${activeVideo.id}`) {
           window.history.replaceState(null, '', newUrl);
@@ -94,7 +101,7 @@ function HomeContent() {
     return () => {
       document.title = 'Kalesh - Watch Kaleshi Videos';
     };
-  }, [activeVideoIndex, videos]);
+  }, [activeVideoIndex, videos, isTransitioning]);
 
   const loadVideos = useCallback(async (pageNum: number) => {
     if (loadingRef.current) return;

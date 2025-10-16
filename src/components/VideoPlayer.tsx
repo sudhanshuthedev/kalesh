@@ -33,10 +33,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   );
   const [likes, setLikes] = useState(video.likes || 0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(isActive);
+
+  const [isLoading, setIsLoading] = useState(isActive && video.id);
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showMuteHint, setShowMuteHint] = useState(false);
   const [showMutedIcon, setShowMutedIcon] = useState(false);
+  const playAttemptedRef = useRef(false);
   const [showNsfwContent, setShowNsfwContent] = useState(false);
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
   const [isLongPress, setIsLongPress] = useState(false);
@@ -136,9 +138,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         if (videoElement.readyState >= 3) {
           setIsLoading(false);
         } else {
+
           loadTimeoutRef.current = setTimeout(() => {
             setIsLoading(false);
-          }, 5000);
+          }, 3000);
         }
       } else {
         setIsLoading(false);
@@ -146,14 +149,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       return;
     }
 
-    if (isActive) {
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
+    if (isActive) {
       if (videoElement.readyState >= 3) {
         setIsLoading(false);
       } else {
         loadTimeoutRef.current = setTimeout(() => {
           setIsLoading(false);
-        }, 5000);
+        }, 3000);
       }
     } else {
       setIsLoading(false);
@@ -190,8 +197,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           if (loadTimeoutRef.current) {
             clearTimeout(loadTimeoutRef.current);
           }
+
           if (isActive) {
             setIsLoading(false);
+
+            hls.startLoad();
+
+            if (videoElement.readyState >= 2) {
+              if (userHasInteracted) {
+                videoElement.muted = false;
+              } else {
+                videoElement.muted = true;
+              }
+              videoElement.play()
+                .then(() => {
+                  setIsPlaying(true);
+                  setShowMuteHint(videoElement.muted);
+                })
+                .catch(() => {
+
+                  videoElement.muted = true;
+                  videoElement.play()
+                    .then(() => {
+                      setIsPlaying(true);
+                      setShowMuteHint(true);
+                    })
+                    .catch(() => {
+                      console.error("Failed to play after manifest parsed");
+                    });
+                });
+            }
           }
         });
 
@@ -272,6 +307,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   }, [video.id]);
 
   useEffect(() => {
+    if (isActive) {
+      playAttemptedRef.current = false;
+    }
+  }, [isActive]);
+
+  useEffect(() => {
     let checkReadyInterval: NodeJS.Timeout | null = null;
     let playTimeout: NodeJS.Timeout | null = null;
 
@@ -280,54 +321,67 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         const video = videoRef.current;
 
         const tryPlay = () => {
+
+          if (playAttemptedRef.current) return;
+          playAttemptedRef.current = true;
+
+          setIsLoading(false);
+
           if (userHasInteracted) {
+
             video.muted = false;
             video.play().then(() => {
               setIsPlaying(true);
               setShowMuteHint(false);
-              setIsLoading(false);
             }).catch(() => {
+
               video.muted = true;
               video.play().then(() => {
                 setIsPlaying(true);
                 setShowMuteHint(true);
-                setIsLoading(false);
-              }).catch(() => {
+              }).catch((err) => {
+                console.error("Failed to play video even when muted:", err);
                 setIsPlaying(false);
+                playAttemptedRef.current = false;
               });
             });
           } else {
+
             video.muted = true;
+
+            video.load();
+
             video.play().then(() => {
               setIsPlaying(true);
               setShowMuteHint(true);
-              setIsLoading(false);
-            }).catch(() => {
+            }).catch((err) => {
+              console.error("Failed to play muted video:", err);
               setIsPlaying(false);
+              playAttemptedRef.current = false;
             });
           }
         };
 
-        if (video.readyState >= 3) {
+        if (video.readyState >= 2) {
           tryPlay();
         } else {
-          checkReadyInterval = setInterval(() => {
 
-            if (video.readyState >= 3) {
+          checkReadyInterval = setInterval(() => {
+            if (video.readyState >= 2) {
               if (checkReadyInterval) clearInterval(checkReadyInterval);
               tryPlay();
             }
-          }, 50);
+          }, 20);
 
           playTimeout = setTimeout(() => {
             if (checkReadyInterval) clearInterval(checkReadyInterval);
-
-            if (!isPlaying && video.readyState >= 2) {
+            if (!isPlaying) {
               tryPlay();
             }
-          }, 5000);
+          }, 1000);
         }
       } else {
+
         videoRef.current.pause();
         videoRef.current.currentTime = 0;
         setIsPlaying(false);
