@@ -87,7 +87,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
         >
           {}
           <div className="flex items-center gap-3 p-4 md:p-6 border-b border-white/5 flex-shrink-0">
-            <IoSearchSharp size={22} className="text-gray-400 flex-shrink-0" />
+            <IoSearchSharp size={20} className="text-gray-400 flex-shrink-0" />
             <input
               type="text"
               placeholder="Search videos and users..."
@@ -98,9 +98,10 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
             />
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors flex-shrink-0 p-1"
+              className="text-white hover:text-gray-300 transition-colors flex-shrink-0 p-2 ml-2"
+              style={{ minWidth: '40px', minHeight: '40px' }}
             >
-              <IoClose size={26} />
+              <IoClose size={28} />
             </button>
           </div>
 

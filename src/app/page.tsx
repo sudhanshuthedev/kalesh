@@ -50,11 +50,22 @@ export default function Home() {
   useEffect(() => {
 
     const logo = document.getElementById('header-logo');
+
     if (logo) {
       logo.style.opacity = showFeedSelector ? '0' : '1';
       logo.style.pointerEvents = showFeedSelector ? 'none' : 'auto';
       logo.style.transition = 'opacity 0.2s ease';
     }
+
+    const searchButtons = document.querySelectorAll('header button');
+    searchButtons.forEach((btn) => {
+      const hasSearchIcon = btn.querySelector('svg');
+      if (hasSearchIcon && btn.textContent === '') {
+        (btn as HTMLElement).style.opacity = showFeedSelector ? '0' : '1';
+        (btn as HTMLElement).style.pointerEvents = showFeedSelector ? 'none' : 'auto';
+        (btn as HTMLElement).style.transition = 'opacity 0.2s ease';
+      }
+    });
   }, [showFeedSelector]);
 
   useEffect(() => {
@@ -145,7 +156,7 @@ export default function Home() {
           pointerEvents: showFeedSelector ? 'auto' : 'none'
         }}
         transition={{ duration: 0.2 }}
-        className="fixed top-3 left-4 z-[150]"
+        className="fixed top-3 left-1/2 transform -translate-x-1/2 z-[150]"
       >
         <div className="flex items-center gap-1 bg-black/50 backdrop-blur-md rounded-lg p-1 border border-white/10">
           <button
