@@ -198,7 +198,7 @@ export default function ProfilePage() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-poppins font-semibold">Videos</h2>
-            <span className="text-gray-400 font-poppins text-sm">{totalVideos} videos</span>
+            <span className="text-gray-400 font-poppins text-sm">{totalVideos || videos.length} videos</span>
           </div>
           {videos.length === 0 && !isLoading ? (
             <div className="text-center py-12">

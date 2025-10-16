@@ -214,7 +214,28 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
 
   const formatTimeAgo = (dateString: string) => {
 
-    const date = new Date(dateString);
+    let date: Date;
+
+    try {
+      if (typeof dateString === 'object' && dateString !== null) {
+
+        const timestampObj = dateString as any;
+        if (timestampObj.iso) {
+          date = new Date(timestampObj.iso);
+        } else if (timestampObj.timestamp) {
+          date = new Date(timestampObj.timestamp * 1000);
+        } else {
+          date = new Date(dateString);
+        }
+      } else {
+
+        date = new Date(dateString);
+      }
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return "unknown";
+    }
+
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
