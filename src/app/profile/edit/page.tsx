@@ -17,7 +17,7 @@ export default function EditProfilePage() {
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [email, setEmail] = useState('');
-  const [showNsfw, setShowNsfw] = useState(true);
+  const [showNsfw, setShowNsfw] = useState<'show' | 'ask_before_showing' | 'dont_show'>('ask_before_showing');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -34,7 +34,7 @@ export default function EditProfilePage() {
       setBio(user.bio || '');
       setEmail(user.email || '');
       setProfileImage(user.profile_image_url || null);
-      setShowNsfw((user as any).show_nsfw !== false);
+      setShowNsfw((user as any).show_nsfw || 'ask_before_showing');
     }
   }, [user]);
 
@@ -85,11 +85,11 @@ export default function EditProfilePage() {
         await authAPI.uploadAvatar(imageFile);
       }
 
-      const profileData: { email?: string; full_name?: string; bio?: string; show_nsfw?: boolean } = {};
+      const profileData: { email?: string; full_name?: string; bio?: string; show_nsfw?: string } = {};
       if (email !== user?.email) profileData.email = email;
       if (fullName !== user?.full_name) profileData.full_name = fullName;
       if (bio !== user?.bio) profileData.bio = bio;
-      if (showNsfw !== ((user as any)?.show_nsfw !== false)) profileData.show_nsfw = showNsfw;
+      if (showNsfw !== ((user as any)?.show_nsfw || 'ask_before_showing')) profileData.show_nsfw = showNsfw;
 
       if (Object.keys(profileData).length > 0) {
         await authAPI.updateProfile(profileData);
@@ -228,17 +228,54 @@ export default function EditProfilePage() {
           </div>
 
           {}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="nsfw-preference"
-              checked={showNsfw}
-              onChange={(e) => setShowNsfw(e.target.checked)}
-              className="w-5 h-5 cursor-pointer accent-white"
-            />
-            <label htmlFor="nsfw-preference" className="font-poppins text-sm cursor-pointer select-none">
-              Show NSFW (Not Safe For Work) content
-            </label>
+          <div>
+            <label className="block font-poppins text-sm mb-3">NSFW Content Preference</label>
+            <div className="space-y-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="nsfw-preference"
+                  value="show"
+                  checked={showNsfw === 'show'}
+                  onChange={(e) => setShowNsfw(e.target.value as 'show')}
+                  className="w-4 h-4 cursor-pointer accent-white"
+                />
+                <div className="flex-1">
+                  <span className="font-poppins text-sm text-white">Show All Content</span>
+                  <p className="font-poppins text-xs text-gray-400">Display all content without filtering</p>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="nsfw-preference"
+                  value="ask_before_showing"
+                  checked={showNsfw === 'ask_before_showing'}
+                  onChange={(e) => setShowNsfw(e.target.value as 'ask_before_showing')}
+                  className="w-4 h-4 cursor-pointer accent-white"
+                />
+                <div className="flex-1">
+                  <span className="font-poppins text-sm text-white">Ask Before Showing (Default)</span>
+                  <p className="font-poppins text-xs text-gray-400">Blur NSFW content, click to reveal</p>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="nsfw-preference"
+                  value="dont_show"
+                  checked={showNsfw === 'dont_show'}
+                  onChange={(e) => setShowNsfw(e.target.value as 'dont_show')}
+                  className="w-4 h-4 cursor-pointer accent-white"
+                />
+                <div className="flex-1">
+                  <span className="font-poppins text-sm text-white">Don't Show NSFW</span>
+                  <p className="font-poppins text-xs text-gray-400">Hide all NSFW content from feeds</p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {error && (

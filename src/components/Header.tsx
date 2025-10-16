@@ -8,14 +8,22 @@ import AuthModal from './AuthModal';
 import SearchModal from './SearchModal';
 import { motion } from 'framer-motion';
 import { IoHomeSharp, IoPersonSharp, IoLogOutOutline, IoBookmarkSharp, IoAdd, IoSettingsOutline, IoSearchSharp } from 'react-icons/io5';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useAuth();
+  const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      window.location.reload();
+    }
+  };
 
   React.useEffect(() => {
     const handleClickOutside = () => {
@@ -39,7 +47,7 @@ const Header = () => {
         style={{ touchAction: 'auto', pointerEvents: 'auto' }}
       >
         {}
-        <Link href="/" className="flex items-center" id="header-logo">
+        <Link href="/" onClick={handleHomeClick} className="flex items-center" id="header-logo">
           <div className="h-8 md:h-9 w-auto relative">
             <Image
               src="/logo.png"
@@ -66,6 +74,7 @@ const Header = () => {
           {}
           <Link
             href="/"
+            onClick={handleHomeClick}
             className={`hidden md:flex items-center gap-2 transition-colors ${
               pathname === '/' ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}

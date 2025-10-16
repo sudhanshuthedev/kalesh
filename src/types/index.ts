@@ -6,7 +6,7 @@ export interface User {
   bio?: string | null;
   profile_image_url?: string | null;
   created_at: string;
-  show_nsfw?: boolean;
+  show_nsfw?: 'show' | 'ask_before_showing' | 'dont_show';
 }
 
 export interface UserLogin {

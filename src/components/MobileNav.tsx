@@ -36,6 +36,13 @@ const MobileNav = () => {
     }
   };
 
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      window.location.reload();
+    }
+  };
+
   return (
     <>
       <nav
@@ -47,6 +54,7 @@ const MobileNav = () => {
       >
         <Link
           href="/"
+          onClick={handleHomeClick}
           className={`flex flex-col items-center justify-center gap-0.5 pointer-events-auto ${
             pathname === '/' ? 'text-white' : 'text-gray-500'
           }`}
