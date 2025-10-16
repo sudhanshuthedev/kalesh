@@ -652,7 +652,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         <div
           ref={interactionLayerRef}
           className="absolute left-0 right-0 z-10"
-          style={{ top: '56px', bottom: '64px' }}
+          style={{ top: '56px', bottom: '64px', touchAction: 'pan-y' }}
           onMouseDown={handlePressStart}
           onMouseUp={handlePressEnd}
           onClick={handleDoubleTap}
