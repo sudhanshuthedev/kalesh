@@ -74,10 +74,6 @@ export default function Home() {
     if (videos.length > 0 && videos[activeVideoIndex]) {
       const activeVideo = videos[activeVideoIndex];
       document.title = `${activeVideo.title} | Kalesh`;
-
-      if (typeof window !== 'undefined' && window.location.pathname === '/') {
-        window.history.replaceState(null, '', `/kalesh/${activeVideo.id}`);
-      }
     }
 
     return () => {
