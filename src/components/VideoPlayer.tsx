@@ -689,7 +689,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[60] pointer-events-none flex flex-col items-center gap-2"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none flex flex-col items-center gap-2"
         >
           <p className="text-white font-poppins text-sm drop-shadow-2xl">Click to unmute</p>
           <IoVolumeMuteOutline size={48} className="text-white drop-shadow-2xl" />
