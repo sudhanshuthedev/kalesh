@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoSearchSharp, IoPersonCircleOutline, IoPlaySharp } from 'react-icons/io5';
 import { feedAPI } from '@/lib/api';
@@ -30,15 +30,30 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
   const [totalVideos, setTotalVideos] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const router = useRouter();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isSearchingRef = useRef(false);
+  const handleSearchRef = useRef<(pageNum?: number) => Promise<void>>();
+
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current || isLoadingMore || !hasMoreVideos || isSearchingRef.current) return;
+
+    const container = scrollContainerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+
+    if (scrollHeight - scrollTop - clientHeight < 200 && handleSearchRef.current) {
+      handleSearchRef.current(page + 1);
+    }
+  }, [isLoadingMore, hasMoreVideos, page]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       if (searchQuery.trim().length > 0) {
-
         setPage(1);
         setVideos([]);
         setUsers([]);
-        handleSearch(1);
+        if (handleSearchRef.current) {
+          handleSearchRef.current(1);
+        }
       } else {
         setVideos([]);
         setUsers([]);
@@ -51,8 +66,22 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
     return () => clearTimeout(delaySearch);
   }, [searchQuery]);
 
-  const handleSearch = async (pageNum = 1) => {
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
+
+  const handleSearch = useCallback(async (pageNum = 1) => {
     try {
+      if (isSearchingRef.current) return;
+      isSearchingRef.current = true;
+
       if (pageNum === 1) {
         setIsLoading(true);
       } else {
@@ -88,14 +117,13 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
+      isSearchingRef.current = false;
     }
-  };
+  }, [searchQuery, videos.length]);
 
-  const loadMoreVideos = () => {
-    if (!isLoadingMore && hasMoreVideos) {
-      handleSearch(page + 1);
-    }
-  };
+  useEffect(() => {
+    handleSearchRef.current = handleSearch;
+  }, [handleSearch]);
 
   const handleVideoClick = (videoId: string) => {
     router.push(`/kalesh/${videoId}`);
@@ -148,7 +176,10 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
           </div>
 
           {}
-          <div className={`${hasResults && showContent ? 'flex-1' : ''} overflow-y-auto p-4 md:p-6`}>
+          <div
+            ref={scrollContainerRef}
+            className={`${hasResults && showContent ? 'flex-1' : ''} overflow-y-auto p-4 md:p-6`}
+          >
             <div className="max-w-6xl mx-auto">
               {isLoading ? (
                 <div className="flex justify-center py-12">
@@ -254,26 +285,16 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
                     </div>
 
                     {}
-                    {hasMoreVideos && (
-                      <div className="mt-6 flex justify-center">
-                        <button
-                          onClick={loadMoreVideos}
-                          disabled={isLoadingMore}
-                          className="bg-white/10 hover:bg-white/20 text-white font-poppins py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          {isLoadingMore ? (
-                            <div className="flex items-center gap-2">
-                              <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                              />
-                              <span>Loading...</span>
-                            </div>
-                          ) : (
-                            'Load More'
-                          )}
-                        </button>
+                    {isLoadingMore && (
+                      <div className="mt-6 flex justify-center py-4">
+                        <div className="flex items-center gap-2">
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                          />
+                          <span className="text-gray-300 font-poppins text-sm">Loading more videos...</span>
+                        </div>
                       </div>
                     )}
                   </div>
