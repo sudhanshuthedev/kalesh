@@ -1041,6 +1041,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       )}
 
       {}
+      {isActive && video.is_nsfw && (
+        <div className="fixed bottom-16 md:bottom-20 left-1/2 transform -translate-x-1/2 z-[45] pointer-events-auto">
+          <Link href="/profile/edit">
+            <button className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white font-poppins text-xs hover:bg-white/20 transition-colors">
+              Don't Show NSFW
+            </button>
+          </Link>
+        </div>
+      )}
+
+      {}
       {isActive && isPlaying && (
         <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/20 z-[50]">
           <motion.div

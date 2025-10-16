@@ -86,24 +86,22 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
           style={{ pointerEvents: 'auto' }}
         >
           {}
-          <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/5 flex-shrink-0">
-            <div className="flex items-center gap-3 flex-1 max-w-4xl mx-auto">
-              <IoSearchSharp size={24} className="text-gray-400 flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Search videos and users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-white font-poppins text-base md:text-lg outline-none placeholder-gray-400"
-                autoFocus
-              />
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
-              >
-                <IoClose size={28} />
-              </button>
-            </div>
+          <div className="flex items-center gap-3 p-4 md:p-6 border-b border-white/5 flex-shrink-0">
+            <IoSearchSharp size={22} className="text-gray-400 flex-shrink-0" />
+            <input
+              type="text"
+              placeholder="Search videos and users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-transparent text-white font-poppins text-base md:text-lg outline-none placeholder-gray-400"
+              autoFocus
+            />
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white transition-colors flex-shrink-0 p-1"
+            >
+              <IoClose size={26} />
+            </button>
           </div>
 
           {}

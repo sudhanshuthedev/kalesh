@@ -129,6 +129,14 @@ export const feedAPI = {
       return { status: 'success', data: { videos: [] }, message: 'No videos available' };
     }
   },
+  getDiscover: async (page = 1, pageSize = 20) => {
+    try {
+      const response = await api.get(`/feeds/discover?page=${page}&page_size=${pageSize}`);
+      return response.data;
+    } catch (error: any) {
+      return { status: 'success', data: { videos: [] }, message: 'No videos available' };
+    }
+  },
   getSaved: async (page = 1, pageSize = 20) => {
     const response = await api.get(`/feeds/saved?page=${page}&page_size=${pageSize}`);
     return response.data;

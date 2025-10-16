@@ -39,7 +39,7 @@ const Header = () => {
         style={{ touchAction: 'auto', pointerEvents: 'auto' }}
       >
         {}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center" id="header-logo">
           <div className="h-8 md:h-9 w-auto relative">
             <Image
               src="/logo.png"

@@ -17,6 +17,7 @@ export default function EditProfilePage() {
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [email, setEmail] = useState('');
+  const [showNsfw, setShowNsfw] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +34,7 @@ export default function EditProfilePage() {
       setBio(user.bio || '');
       setEmail(user.email || '');
       setProfileImage(user.profile_image_url || null);
+      setShowNsfw((user as any).show_nsfw !== false);
     }
   }, [user]);
 
@@ -83,10 +85,11 @@ export default function EditProfilePage() {
         await authAPI.uploadAvatar(imageFile);
       }
 
-      const profileData: { email?: string; full_name?: string; bio?: string } = {};
+      const profileData: { email?: string; full_name?: string; bio?: string; show_nsfw?: boolean } = {};
       if (email !== user?.email) profileData.email = email;
       if (fullName !== user?.full_name) profileData.full_name = fullName;
       if (bio !== user?.bio) profileData.bio = bio;
+      if (showNsfw !== ((user as any)?.show_nsfw !== false)) profileData.show_nsfw = showNsfw;
 
       if (Object.keys(profileData).length > 0) {
         await authAPI.updateProfile(profileData);
@@ -222,6 +225,20 @@ export default function EditProfilePage() {
               maxLength={500}
             />
             <p className="text-gray-500 font-poppins text-xs mt-1">{bio.length}/500 characters</p>
+          </div>
+
+          {}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="nsfw-preference"
+              checked={showNsfw}
+              onChange={(e) => setShowNsfw(e.target.checked)}
+              className="w-5 h-5 cursor-pointer accent-white"
+            />
+            <label htmlFor="nsfw-preference" className="font-poppins text-sm cursor-pointer select-none">
+              Show NSFW (Not Safe For Work) content
+            </label>
           </div>
 
           {error && (

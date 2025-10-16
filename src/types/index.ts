@@ -6,6 +6,7 @@ export interface User {
   bio?: string | null;
   profile_image_url?: string | null;
   created_at: string;
+  show_nsfw?: boolean;
 }
 
 export interface UserLogin {
@@ -45,6 +46,7 @@ export interface Video {
   created_at: string;
   tags?: string[];
   processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  is_nsfw?: boolean;
   is_liked?: boolean;
   is_disliked?: boolean;
   is_saved?: boolean;

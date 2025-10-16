@@ -19,6 +19,7 @@ export default function UploadPage() {
   const [suggestedTags, setSuggestedTags] = useState<Array<{ tag: string; count: number }>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [isNsfw, setIsNsfw] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -180,6 +181,7 @@ export default function UploadPage() {
       formData.append('title', title);
       if (description) formData.append('description', description);
       if (selectedTags.length > 0) formData.append('tags', selectedTags.join(','));
+      formData.append('is_nsfw', isNsfw.toString());
 
       const response = await videoAPI.upload(formData);
       if (response.status === 'success') {
@@ -441,6 +443,20 @@ export default function UploadPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="nsfw-checkbox"
+              checked={isNsfw}
+              onChange={(e) => setIsNsfw(e.target.checked)}
+              className="w-5 h-5 cursor-pointer accent-white"
+            />
+            <label htmlFor="nsfw-checkbox" className="font-poppins text-sm cursor-pointer select-none">
+              Mark as NSFW (Not Safe For Work)
+            </label>
           </div>
 
           {error && (
