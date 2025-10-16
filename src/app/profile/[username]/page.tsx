@@ -9,6 +9,7 @@ import { IoPersonCircleOutline, IoPlaySharp, IoSettingsOutline, IoTrashOutline }
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import DeleteVideoModal from '@/components/DeleteVideoModal';
+import { formatLocalDate } from '@/lib/dateUtils';
 
 interface UserProfile {
   id: string;
@@ -178,11 +179,7 @@ export default function ProfilePage() {
             </p>
           )}
           <p className="text-gray-500 font-poppins text-xs md:text-sm mb-3">
-            Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString(undefined, {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            }) : 'Unknown'}
+            Member since {profile?.created_at ? formatLocalDate(profile.created_at) : 'Unknown'}
           </p>
           {isOwnProfile && (
             <Link

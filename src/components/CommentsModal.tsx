@@ -7,6 +7,7 @@ import { Comment } from '@/types';
 import { commentAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModal } from '@/contexts/ModalContext';
+import { formatTimeAgo } from '@/lib/dateUtils';
 
 interface CommentsModalProps {
   videoId: string;
@@ -210,49 +211,6 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   const handleReply = (comment: Comment) => {
     setReplyingTo(comment);
     inputRef.current?.focus();
-  };
-
-  const formatTimeAgo = (dateString: string) => {
-
-    let date: Date;
-
-    try {
-      if (typeof dateString === 'object' && dateString !== null) {
-
-        const timestampObj = dateString as any;
-        if (timestampObj.iso) {
-          date = new Date(timestampObj.iso);
-        } else if (timestampObj.timestamp) {
-          date = new Date(timestampObj.timestamp * 1000);
-        } else {
-          date = new Date(dateString);
-        }
-      } else {
-
-        date = new Date(dateString);
-      }
-    } catch (error) {
-      console.error("Error parsing date:", error);
-      return "unknown";
-    }
-
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (seconds < 0) return 'just now';
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d`;
-    const weeks = Math.floor(days / 7);
-    if (weeks < 4) return `${weeks}w`;
-    const months = Math.floor(days / 30);
-    if (months < 12) return `${months}mo`;
-    const years = Math.floor(days / 365);
-    return `${years}y`;
   };
 
   const renderComment = (comment: Comment, isReply = false) => (
