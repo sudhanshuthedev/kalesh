@@ -24,33 +24,76 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [users, setUsers] = useState<SearchUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMoreVideos, setHasMoreVideos] = useState(false);
+  const [totalVideos, setTotalVideos] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
       if (searchQuery.trim().length > 0) {
-        handleSearch();
+
+        setPage(1);
+        setVideos([]);
+        setUsers([]);
+        handleSearch(1);
       } else {
         setVideos([]);
         setUsers([]);
+        setTotalVideos(0);
+        setTotalUsers(0);
+        setHasMoreVideos(false);
       }
     }, 300);
 
     return () => clearTimeout(delaySearch);
   }, [searchQuery]);
 
-  const handleSearch = async () => {
+  const handleSearch = async (pageNum = 1) => {
     try {
-      setIsLoading(true);
-      const response = await feedAPI.search(searchQuery.trim(), 1, 10);
+      if (pageNum === 1) {
+        setIsLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
+
+      const pageSize = 10;
+      const response = await feedAPI.search(searchQuery.trim(), pageNum, pageSize);
+
       if (response.status === 'success' && response.data) {
-        setVideos(response.data.videos || []);
-        setUsers(response.data.users || []);
+        const newVideos = response.data.videos || [];
+
+        if (pageNum === 1) {
+          setVideos(newVideos);
+          setUsers(response.data.users || []);
+        } else {
+          setVideos(prev => [...prev, ...newVideos]);
+        }
+
+        if (response.data.total_videos !== undefined) {
+          setTotalVideos(response.data.total_videos);
+        }
+
+        if (response.data.total_users !== undefined) {
+          setTotalUsers(response.data.total_users);
+        }
+
+        setHasMoreVideos(newVideos.length === pageSize && videos.length + newVideos.length < response.data.total_videos);
+        setPage(pageNum);
       }
     } catch (error) {
       console.error('Search failed:', error);
     } finally {
       setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadMoreVideos = () => {
+    if (!isLoadingMore && hasMoreVideos) {
+      handleSearch(page + 1);
     }
   };
 
@@ -130,7 +173,10 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
                 {}
                 {users.length > 0 && (
                   <div>
-                    <h3 className="text-white font-poppins font-semibold text-sm mb-3">Users</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-white font-poppins font-semibold text-sm">Users</h3>
+                      <span className="text-gray-400 font-poppins text-xs">{totalUsers > 0 ? `${users.length} of ${totalUsers}` : users.length} users</span>
+                    </div>
                     <div className="space-y-2">
                       {users.map((user) => (
                         <Link
@@ -165,7 +211,10 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
                 {}
                 {videos.length > 0 && (
                   <div>
-                    <h3 className="text-white font-poppins font-semibold text-sm mb-3">Videos</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-white font-poppins font-semibold text-sm">Videos</h3>
+                      <span className="text-gray-400 font-poppins text-xs">{totalVideos > 0 ? `${videos.length} of ${totalVideos}` : videos.length} videos</span>
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                       {videos.map((video) => (
                         <motion.div
@@ -203,6 +252,30 @@ const SearchModal: React.FC<SearchModalProps> = ({ onClose }) => {
                         </motion.div>
                       ))}
                     </div>
+
+                    {}
+                    {hasMoreVideos && (
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          onClick={loadMoreVideos}
+                          disabled={isLoadingMore}
+                          className="bg-white/10 hover:bg-white/20 text-white font-poppins py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {isLoadingMore ? (
+                            <div className="flex items-center gap-2">
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                              />
+                              <span>Loading...</span>
+                            </div>
+                          ) : (
+                            'Load More'
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
                 </div>
