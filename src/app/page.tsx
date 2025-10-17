@@ -173,7 +173,13 @@ function HomeContent() {
   }, [activeVideoIndex, videos.length, hasMore, loadVideos, showFeedSelector]);
 
   return videos.length === 0 ? (
-    <div className="h-screen flex items-center justify-center bg-black" />
+    <div className="h-screen flex items-center justify-center bg-black">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        className="w-12 h-12 border-4 border-white border-t-transparent rounded-full"
+      />
+    </div>
   ) : (
     <>
       {}
@@ -252,7 +258,15 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div className="h-screen flex items-center justify-center bg-black" />}>
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-black">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-12 h-12 border-4 border-white border-t-transparent rounded-full"
+        />
+      </div>
+    }>
       <HomeContent />
     </Suspense>
   );

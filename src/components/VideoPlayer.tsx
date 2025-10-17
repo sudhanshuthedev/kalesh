@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline, IoPlayBack, IoPlayForward } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -98,6 +98,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     viewTrackedRef.current = false;
     setShowAllTags(false);
     setVideoProgress(0);
+    setShowNsfwContent(false);
   }, [video.id]);
 
   useEffect(() => {
@@ -109,12 +110,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       setVideoProgress(progress || 0);
     };
 
+    const handleVolumeChange = () => {
+      setShowMuteHint(videoElement.muted);
+    };
+
     videoElement.addEventListener('timeupdate', updateProgress);
     videoElement.addEventListener('loadedmetadata', updateProgress);
+    videoElement.addEventListener('volumechange', handleVolumeChange);
 
     return () => {
       videoElement.removeEventListener('timeupdate', updateProgress);
       videoElement.removeEventListener('loadedmetadata', updateProgress);
+      videoElement.removeEventListener('volumechange', handleVolumeChange);
     };
   }, [video.id]);
 
@@ -204,6 +211,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             hls.startLoad();
 
             if (videoElement.readyState >= 2) {
+
+              if (shouldBlurNsfw) {
+                videoElement.pause();
+                setIsPlaying(false);
+                return;
+              }
+
               if (userHasInteracted) {
                 videoElement.muted = false;
               } else {
@@ -212,7 +226,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
               videoElement.play()
                 .then(() => {
                   setIsPlaying(true);
-                  setShowMuteHint(videoElement.muted);
+
                 })
                 .catch(() => {
 
@@ -220,7 +234,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
                   videoElement.play()
                     .then(() => {
                       setIsPlaying(true);
-                      setShowMuteHint(true);
+
                     })
                     .catch(() => {
                       console.error("Failed to play after manifest parsed");
@@ -309,6 +323,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   useEffect(() => {
     if (isActive) {
       playAttemptedRef.current = false;
+
+      if (videoRef.current) {
+        setShowMuteHint(videoRef.current.muted);
+      }
+    } else {
+      setShowMuteHint(false);
     }
   }, [isActive]);
 
@@ -327,18 +347,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
           setIsLoading(false);
 
+          if (shouldBlurNsfw) {
+            video.pause();
+            setIsPlaying(false);
+            return;
+          }
+
           if (userHasInteracted) {
 
             video.muted = false;
             video.play().then(() => {
               setIsPlaying(true);
-              setShowMuteHint(false);
+
             }).catch(() => {
 
               video.muted = true;
               video.play().then(() => {
                 setIsPlaying(true);
-                setShowMuteHint(true);
+
               }).catch((err) => {
                 console.error("Failed to play video even when muted:", err);
                 setIsPlaying(false);
@@ -353,7 +379,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
             video.play().then(() => {
               setIsPlaying(true);
-              setShowMuteHint(true);
+
             }).catch((err) => {
               console.error("Failed to play muted video:", err);
               setIsPlaying(false);
@@ -561,7 +587,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         setTimeout(() => setShowMutedIcon(false), 1500);
       }
 
-      if (!isPlaying) {
+      if (shouldBlurNsfw) {
+        video.pause();
+        setIsPlaying(false);
+      } else if (!isPlaying) {
         video.play().then(() => {
           setIsPlaying(true);
         }).catch(() => {
@@ -644,6 +673,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       };
     }
   }, [showMoreMenu]);
+
+  useEffect(() => {
+    if (videoRef.current && isActive) {
+      if (shouldBlurNsfw) {
+
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else if (!shouldBlurNsfw && !isPlaying && !playAttemptedRef.current) {
+
+        videoRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch(() => {});
+      }
+    }
+  }, [shouldBlurNsfw, isActive, isPlaying]);
 
   const handleDeleteVideo = () => {
 
@@ -741,7 +785,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
 
       {}
-      {showMuteHint && isPlaying && (
+      {showMuteHint && isPlaying && videoRef.current && videoRef.current.muted && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -975,6 +1019,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             )}
           </button>
 
+          {}
           <div className="relative">
             <button
               type="button"
@@ -1095,6 +1140,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
               </motion.div>
             )}
           </div>
+
+          {}
+          {video.last_part_id && (
+            <Link
+              href={`/kalesh/${video.last_part_id}`}
+              className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center bg-white/20 hover:bg-white/30 active:scale-90 transition-all"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <IoPlayBack size={20} className="text-white" />
+            </Link>
+          )}
+
+          {video.next_part_id && (
+            <Link
+              href={`/kalesh/${video.next_part_id}`}
+              className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center bg-white/20 hover:bg-white/30 active:scale-90 transition-all"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <IoPlayForward size={20} className="text-white" />
+            </Link>
+          )}
         </div>
       )}
 

@@ -51,6 +51,8 @@ export interface Video {
   is_disliked?: boolean;
   is_saved?: boolean;
   user_interaction?: UserInteraction | null;
+  last_part_id?: string | null;
+  next_part_id?: string | null;
 }
 
 export interface Comment {
