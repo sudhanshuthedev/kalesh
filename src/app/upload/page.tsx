@@ -65,7 +65,12 @@ export default function UploadPage() {
 
   useEffect(() => {
     if (hasPreviousPart && isAuthenticated) {
-      loadMyVideos();
+
+      const timeoutId = setTimeout(() => {
+        loadMyVideos();
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [hasPreviousPart, isAuthenticated, videoSearchQuery]);
 
@@ -109,6 +114,10 @@ export default function UploadPage() {
 
         const availableVideos = response.data.videos.filter((v: any) => !v.next_part_id);
         setMyVideos(availableVideos);
+
+        if (previousPartId && !availableVideos.find((v: any) => v.id === previousPartId)) {
+          setPreviousPartId('');
+        }
       }
     } catch (error) {
       console.error('Failed to load my videos:', error);
@@ -449,7 +458,11 @@ export default function UploadPage() {
                         <button
                           key={video.id}
                           type="button"
-                          onClick={() => setPreviousPartId(video.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setPreviousPartId(video.id);
+                          }}
                           className={`w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/10 last:border-b-0 ${
                             previousPartId === video.id ? 'bg-white/20' : ''
                           }`}
