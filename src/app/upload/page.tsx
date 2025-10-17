@@ -456,7 +456,7 @@ export default function UploadPage() {
                         >
                           <p className="font-poppins text-sm font-semibold text-white truncate">{video.title}</p>
                           <p className="font-poppins text-xs text-gray-400 mt-1">
-                            {new Date(video.created_at).toLocaleDateString()}
+                            {new Date(video.created_at?.iso || video.created_at).toLocaleDateString()}
                           </p>
                         </button>
                       ))}
