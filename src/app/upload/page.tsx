@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { videoAPI, tagAPI } from '@/lib/api';
@@ -28,11 +28,6 @@ export default function UploadPage() {
   const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
-  const [hasPreviousPart, setHasPreviousPart] = useState(false);
-  const [previousPartId, setPreviousPartId] = useState('');
-  const [myVideos, setMyVideos] = useState<any[]>([]);
-  const [loadingMyVideos, setLoadingMyVideos] = useState(false);
-  const [videoSearchQuery, setVideoSearchQuery] = useState('');
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -59,6 +54,19 @@ export default function UploadPage() {
     };
   }, []);
 
+  useEffect(() => {
+    loadTrendingTags();
+  }, []);
+
+  useEffect(() => {
+    if (tagInput.length >= 2) {
+      loadSuggestedTags(tagInput);
+    } else {
+      setSuggestedTags([]);
+      setShowSuggestions(false);
+    }
+  }, [tagInput]);
+
   const loadTrendingTags = async () => {
     try {
       const response = await tagAPI.trending(10);
@@ -81,50 +89,6 @@ export default function UploadPage() {
       console.error('Failed to load suggested tags:', error);
     }
   };
-
-  const loadMyVideos = useCallback(async () => {
-    try {
-      setLoadingMyVideos(true);
-      const response = await videoAPI.getMyVideos(videoSearchQuery || undefined, 1, 20);
-      if (response.status === 'success' && response.data?.videos) {
-
-        const availableVideos = response.data.videos.filter((v: any) => !v.next_part_id);
-        setMyVideos(availableVideos);
-
-        if (previousPartId && !availableVideos.find((v: any) => v.id === previousPartId)) {
-          setPreviousPartId('');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load my videos:', error);
-    } finally {
-      setLoadingMyVideos(false);
-    }
-  }, [videoSearchQuery, previousPartId]);
-
-  useEffect(() => {
-    loadTrendingTags();
-  }, []);
-
-  useEffect(() => {
-    if (hasPreviousPart && isAuthenticated) {
-
-      const timeoutId = setTimeout(() => {
-        loadMyVideos();
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [hasPreviousPart, isAuthenticated, videoSearchQuery, loadMyVideos]);
-
-  useEffect(() => {
-    if (tagInput.length >= 2) {
-      loadSuggestedTags(tagInput);
-    } else {
-      setSuggestedTags([]);
-      setShowSuggestions(false);
-    }
-  }, [tagInput]);
 
   const addTag = (tag: string) => {
     const cleanTag = tag.trim().toLowerCase();
@@ -203,11 +167,6 @@ export default function UploadPage() {
       return;
     }
 
-    if (hasPreviousPart && !previousPartId) {
-      setError('Please select the previous part of this series');
-      return;
-    }
-
     if (!acceptedTOS) {
       setShowTOS(true);
       return;
@@ -223,7 +182,6 @@ export default function UploadPage() {
       if (description) formData.append('description', description);
       if (selectedTags.length > 0) formData.append('tags', selectedTags.join(','));
       formData.append('is_nsfw', isNsfw.toString());
-      if (hasPreviousPart && previousPartId) formData.append('last_part_id', previousPartId);
 
       const response = await videoAPI.upload(formData);
       if (response.status === 'success') {
@@ -401,89 +359,6 @@ export default function UploadPage() {
               className="w-full bg-app-gray px-4 py-3 font-poppins h-32 resize-none focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
               placeholder="Enter video description"
             />
-          </div>
-
-          {}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="has-previous-part"
-                checked={hasPreviousPart}
-                onChange={(e) => {
-                  setHasPreviousPart(e.target.checked);
-                  if (!e.target.checked) {
-                    setPreviousPartId('');
-                    setVideoSearchQuery('');
-                  }
-                }}
-                className="w-5 h-5 cursor-pointer accent-white"
-              />
-              <label htmlFor="has-previous-part" className="font-poppins text-sm cursor-pointer select-none">
-                This video is part of a series
-              </label>
-            </div>
-
-            {hasPreviousPart && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-3"
-              >
-                <div>
-                  <label className="block font-poppins text-sm mb-2">Search your videos</label>
-                  <input
-                    type="text"
-                    value={videoSearchQuery}
-                    onChange={(e) => setVideoSearchQuery(e.target.value)}
-                    className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
-                    placeholder="Search for the previous part..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-poppins text-sm mb-2">Select previous part *</label>
-                  {loadingMyVideos ? (
-                    <div className="flex items-center justify-center py-8">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-8 h-8 border-4 border-white border-t-transparent rounded-full"
-                      />
-                    </div>
-                  ) : myVideos.length > 0 ? (
-                    <div className="max-h-64 overflow-y-auto bg-app-gray border border-white/20">
-                      {myVideos.map((video) => (
-                        <button
-                          key={video.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setPreviousPartId(video.id);
-                          }}
-                          className={`w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/10 last:border-b-0 ${
-                            previousPartId === video.id ? 'bg-white/20' : ''
-                          }`}
-                        >
-                          <p className="font-poppins text-sm font-semibold text-white truncate">{video.title}</p>
-                          <p className="font-poppins text-xs text-gray-400 mt-1">
-                            {new Date(video.created_at?.iso || video.created_at).toLocaleDateString()}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-app-gray border border-white/20 px-4 py-8 text-center">
-                      <p className="font-poppins text-sm text-gray-400">
-                        {videoSearchQuery ? 'No videos found matching your search' : 'No videos available for series. Videos that already have a next part cannot be selected.'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
           </div>
 
           {}

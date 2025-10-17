@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline, IoPlayBack, IoPlayForward } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -1019,7 +1019,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             )}
           </button>
 
-          {}
           <div className="relative">
             <button
               type="button"
@@ -1140,27 +1139,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
               </motion.div>
             )}
           </div>
-
-          {}
-          {video.last_part_id && (
-            <Link
-              href={`/kalesh/${video.last_part_id}`}
-              className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center bg-white/20 hover:bg-white/30 active:scale-90 transition-all"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <IoPlayBack size={20} className="text-white" />
-            </Link>
-          )}
-
-          {video.next_part_id && (
-            <Link
-              href={`/kalesh/${video.next_part_id}`}
-              className="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center bg-white/20 hover:bg-white/30 active:scale-90 transition-all"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <IoPlayForward size={20} className="text-white" />
-            </Link>
-          )}
         </div>
       )}
 

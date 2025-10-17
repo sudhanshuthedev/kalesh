@@ -88,18 +88,6 @@ export const videoAPI = {
     const response = await api.delete(`/videos/${videoId}`);
     return response.data;
   },
-  getMyVideos: async (query?: string, page = 1, pageSize = 20) => {
-    try {
-      let url = `/videos/my-videos?page=${page}&page_size=${pageSize}`;
-      if (query) {
-        url += `&query=${encodeURIComponent(query)}`;
-      }
-      const response = await api.get(url);
-      return response.data;
-    } catch (error: any) {
-      return { status: 'success', data: { videos: [], total: 0, page, page_size: pageSize }, message: 'No videos found' };
-    }
-  },
 };
 
 export const interactionAPI = {
