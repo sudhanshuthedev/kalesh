@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { videoAPI, tagAPI } from '@/lib/api';
@@ -59,30 +59,6 @@ export default function UploadPage() {
     };
   }, []);
 
-  useEffect(() => {
-    loadTrendingTags();
-  }, []);
-
-  useEffect(() => {
-    if (hasPreviousPart && isAuthenticated) {
-
-      const timeoutId = setTimeout(() => {
-        loadMyVideos();
-      }, 500);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [hasPreviousPart, isAuthenticated, videoSearchQuery]);
-
-  useEffect(() => {
-    if (tagInput.length >= 2) {
-      loadSuggestedTags(tagInput);
-    } else {
-      setSuggestedTags([]);
-      setShowSuggestions(false);
-    }
-  }, [tagInput]);
-
   const loadTrendingTags = async () => {
     try {
       const response = await tagAPI.trending(10);
@@ -106,10 +82,10 @@ export default function UploadPage() {
     }
   };
 
-  const loadMyVideos = async () => {
+  const loadMyVideos = useCallback(async () => {
     try {
       setLoadingMyVideos(true);
-      const response = await videoAPI.getMyVideos(videoSearchQuery || undefined, 1, 50);
+      const response = await videoAPI.getMyVideos(videoSearchQuery || undefined, 1, 20);
       if (response.status === 'success' && response.data?.videos) {
 
         const availableVideos = response.data.videos.filter((v: any) => !v.next_part_id);
@@ -124,7 +100,31 @@ export default function UploadPage() {
     } finally {
       setLoadingMyVideos(false);
     }
-  };
+  }, [videoSearchQuery, previousPartId]);
+
+  useEffect(() => {
+    loadTrendingTags();
+  }, []);
+
+  useEffect(() => {
+    if (hasPreviousPart && isAuthenticated) {
+
+      const timeoutId = setTimeout(() => {
+        loadMyVideos();
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [hasPreviousPart, isAuthenticated, videoSearchQuery, loadMyVideos]);
+
+  useEffect(() => {
+    if (tagInput.length >= 2) {
+      loadSuggestedTags(tagInput);
+    } else {
+      setSuggestedTags([]);
+      setShowSuggestions(false);
+    }
+  }, [tagInput]);
 
   const addTag = (tag: string) => {
     const cleanTag = tag.trim().toLowerCase();
