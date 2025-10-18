@@ -7,6 +7,7 @@ import { Comment } from '@/types';
 import { commentAPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useModal } from '@/contexts/ModalContext';
+import { useNotification } from '@/contexts/NotificationContext';
 import { formatTimeAgo } from '@/lib/dateUtils';
 
 interface CommentsModalProps {
@@ -24,6 +25,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   const inputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated, user } = useAuth();
   const { addModal, removeModal } = useModal();
+  const { showNotification, showConfirm } = useNotification();
 
   useEffect(() => {
     if (isOpen && videoId) {
@@ -117,13 +119,13 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
       } else {
         setComments(prevComments => prevComments.filter(comment => comment.id !== tempComment.id));
       }
-      alert('Failed to post comment. Please try again.');
+      showNotification('Failed to post comment', 'error');
     }
   };
 
   const handleLikeComment = async (commentId: string) => {
     if (!isAuthenticated) {
-      alert('Please login to like comments');
+      showNotification('Please login to like comments', 'info');
       return;
     }
 
@@ -181,31 +183,31 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Are you sure you want to delete this comment?')) return;
+    showConfirm('Delete this comment?', async () => {
+      setComments(prevComments => {
+        const removeComment = (comments: Comment[]): Comment[] => {
+          return comments.filter(comment => {
+            if (comment.id === commentId) {
+              return false;
+            }
+            if (comment.replies && comment.replies.length > 0) {
+              comment.replies = removeComment(comment.replies);
+            }
+            return true;
+          });
+        };
+        return removeComment(prevComments);
+      });
 
-    setComments(prevComments => {
-      const removeComment = (comments: Comment[]): Comment[] => {
-        return comments.filter(comment => {
-          if (comment.id === commentId) {
-            return false;
-          }
-          if (comment.replies && comment.replies.length > 0) {
-            comment.replies = removeComment(comment.replies);
-          }
-          return true;
-        });
-      };
-      return removeComment(prevComments);
+      try {
+        await commentAPI.deleteComment(commentId);
+        showNotification('Comment deleted', 'success');
+      } catch (error) {
+        console.error('Failed to delete comment:', error);
+        loadComments();
+        showNotification('Failed to delete comment', 'error');
+      }
     });
-
-    try {
-      await commentAPI.deleteComment(commentId);
-    } catch (error) {
-      console.error('Failed to delete comment:', error);
-
-      loadComments();
-      alert('Failed to delete comment');
-    }
   };
 
   const handleReply = (comment: Comment) => {
@@ -528,6 +530,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showNotification } = useNotification();
 
   const reportReasons = [
     'Spam',
@@ -551,11 +554,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
       } else {
         await commentAPI.reportComment(id, reason, details || undefined);
       }
-      alert('Report submitted successfully');
+      showNotification('Report submitted successfully', 'success');
       onClose();
     } catch (error) {
       console.error('Failed to submit report:', error);
-      alert('Failed to submit report. Please try again.');
+      showNotification('Failed to submit report', 'error');
     } finally {
       setIsSubmitting(false);
     }

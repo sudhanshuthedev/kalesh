@@ -6,6 +6,7 @@ import { Video } from '@/types';
 import { motion } from 'framer-motion';
 import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotification } from '@/contexts/NotificationContext';
 import { interactionAPI } from '@/lib/api';
 import Link from 'next/link';
 import CommentsModal from './CommentsModal';
@@ -24,6 +25,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const { isAuthenticated, user } = useAuth();
+  const { showNotification } = useNotification();
   const router = useRouter();
   const [isLiked, setIsLiked] = useState(
     video.user_interaction?.liked || video.user_interaction?.is_liked || video.is_liked || false
@@ -427,7 +429,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     }
 
     if (!isAuthenticated) {
-      alert('Please login to like videos');
+      showNotification('Please login to like videos', 'info');
       return;
     }
 
@@ -501,7 +503,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      alert('Please login to save videos');
+      showNotification('Please login to save videos', 'info');
       return;
     }
 
@@ -529,17 +531,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       } catch (error) {
         try {
           await navigator.clipboard.writeText(shareUrl);
-          alert('Link copied to clipboard!');
+          showNotification('Link copied to clipboard!', 'success');
         } catch (clipError) {
-          alert('Failed to copy link');
+          showNotification('Failed to copy link', 'error');
         }
       }
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert('Link copied to clipboard!');
+        showNotification('Link copied to clipboard!', 'success');
       } catch (error) {
-        alert('Failed to copy link. Please try again.');
+        showNotification('Failed to copy link', 'error');
       }
     }
   };
@@ -1106,35 +1108,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
                     Delete Video
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (!isAuthenticated) {
-                        alert('Please login to report videos');
-                        setShowMoreMenu(false);
-                        return;
-                      }
-                      setShowReportModal(true);
-                      setTimeout(() => setShowMoreMenu(false), 100);
-                    }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (!isAuthenticated) {
-                        alert('Please login to report videos');
-                        setShowMoreMenu(false);
-                        return;
-                      }
-                      setShowReportModal(true);
-                      setTimeout(() => setShowMoreMenu(false), 100);
-                    }}
-                    className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
-                  >
-                    <IoFlagOutline size={20} />
-                    Report
-                  </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!isAuthenticated) {
+                      showNotification('Please login to report videos', 'info');
+                      setShowMoreMenu(false);
+                      return;
+                    }
+                    setShowReportModal(true);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!isAuthenticated) {
+                      showNotification('Please login to report videos', 'info');
+                      setShowMoreMenu(false);
+                      return;
+                    }
+                    setShowReportModal(true);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                >
+                  <IoFlagOutline size={20} />
+                  Report
+                </button>
                 )}
               </motion.div>
             )}
@@ -1195,6 +1197,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ videoId, onClose }) => {
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showNotification } = useNotification();
 
   const reportReasons = [
     'Spam',
@@ -1213,11 +1216,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ videoId, onClose }) => {
     try {
       setIsSubmitting(true);
       await interactionAPI.report(videoId, reason, details || undefined);
-      alert('Report submitted successfully');
+      showNotification('Report submitted successfully', 'success');
       onClose();
     } catch (error) {
       console.error('Failed to submit report:', error);
-      alert('Failed to submit report. Please try again.');
+      showNotification('Failed to submit report', 'error');
     } finally {
       setIsSubmitting(false);
     }
