@@ -146,13 +146,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
     if (hlsRef.current && hlsRef.current.media === videoElement) {
       if (isActive) {
-        if (videoElement.readyState >= 3) {
+        if (videoElement.readyState >= 1) {
           setIsLoading(false);
         } else {
 
           loadTimeoutRef.current = setTimeout(() => {
             setIsLoading(false);
-          }, 1500);
+          }, 800);
         }
       } else {
         setIsLoading(false);
@@ -166,12 +166,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
     }
 
     if (isActive) {
-      if (videoElement.readyState >= 3) {
+      if (videoElement.readyState >= 1) {
         setIsLoading(false);
       } else {
         loadTimeoutRef.current = setTimeout(() => {
           setIsLoading(false);
-        }, 1500);
+        }, 800);
       }
     } else {
       setIsLoading(false);
@@ -185,8 +185,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           startLevel: -1,
           autoStartLoad: true,
           capLevelToPlayerSize: true,
-          maxBufferLength: isActive ? 10 : 5,
-          maxMaxBufferLength: 60,
+          maxBufferLength: 2,
+          maxMaxBufferLength: 10,
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
           abrEwmaDefaultEstimate: 500000,
@@ -194,8 +194,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           abrEwmaSlowLive: 9.0,
           abrBandWidthFactor: 0.9,
           abrBandWidthUpFactor: 0.7,
-          lowLatencyMode: false,
-          backBufferLength: 30,
+          lowLatencyMode: true,
+          backBufferLength: 5,
           progressive: true,
         });
 
@@ -204,42 +204,49 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         hls.loadSource(videoUrl);
         hls.attachMedia(videoElement);
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        let hasTriedPlay = false;
+
+        const attemptPlay = () => {
+          if (hasTriedPlay || !isActive || shouldBlurNsfw) return;
+          hasTriedPlay = true;
+
           if (loadTimeoutRef.current) {
             clearTimeout(loadTimeoutRef.current);
           }
+          setIsLoading(false);
 
-          if (isActive) {
-            setIsLoading(false);
+          if (userHasInteracted) {
+            videoElement.muted = false;
+          } else {
+            videoElement.muted = true;
+          }
 
-            hls.startLoad();
-
-            if (shouldBlurNsfw) {
-              videoElement.pause();
-              setIsPlaying(false);
-              return;
-            }
-
-            if (userHasInteracted) {
-              videoElement.muted = false;
-            } else {
+          videoElement.play()
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch(() => {
               videoElement.muted = true;
-            }
+              videoElement.play()
+                .then(() => {
+                  setIsPlaying(true);
+                })
+                .catch((err) => {
+                  console.error("Failed to play:", err);
+                });
+            });
+        };
 
-            videoElement.play()
-              .then(() => {
-                setIsPlaying(true);
-              })
-              .catch(() => {
-                videoElement.muted = true;
-                videoElement.play()
-                  .then(() => {
-                    setIsPlaying(true);
-                  })
-                  .catch(() => {
-                    console.error("Failed to play after manifest parsed");
-                  });
-              });
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (isActive) {
+            hls.startLoad();
+            setTimeout(() => attemptPlay(), 100);
+          }
+        });
+
+        hls.on(Hls.Events.FRAG_LOADED, () => {
+          if (isActive && !hasTriedPlay) {
+            attemptPlay();
           }
         });
 
@@ -250,13 +257,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             }
             setIsLoading(false);
           }
-        });
-
-        hls.on(Hls.Events.BUFFER_APPENDING, () => {
-
-          if (shouldPreload && videoElement.readyState >= 3) {
-
-            setIsLoading(false);
+          if (isActive && !hasTriedPlay) {
+            attemptPlay();
           }
         });
 
@@ -386,13 +388,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         };
 
         if (video.readyState >= 1) {
-          tryPlay();
+          setTimeout(() => tryPlay(), 50);
         } else {
 
           checkReadyInterval = setInterval(() => {
             if (video.readyState >= 1) {
               if (checkReadyInterval) clearInterval(checkReadyInterval);
-              tryPlay();
+              setTimeout(() => tryPlay(), 50);
             }
           }, 50);
 
@@ -401,7 +403,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             if (!isPlaying) {
               tryPlay();
             }
-          }, 500);
+          }, 300);
         }
       } else {
 
