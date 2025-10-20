@@ -152,7 +152,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
           loadTimeoutRef.current = setTimeout(() => {
             setIsLoading(false);
-          }, 3000);
+          }, 1500);
         }
       } else {
         setIsLoading(false);
@@ -171,7 +171,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       } else {
         loadTimeoutRef.current = setTimeout(() => {
           setIsLoading(false);
-        }, 3000);
+        }, 1500);
       }
     } else {
       setIsLoading(false);
@@ -185,8 +185,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           startLevel: -1,
           autoStartLoad: true,
           capLevelToPlayerSize: true,
-          maxBufferLength: shouldPreload ? 20 : (isActive ? 30 : 5),
-          maxMaxBufferLength: 600,
+          maxBufferLength: isActive ? 10 : 5,
+          maxMaxBufferLength: 60,
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
           abrEwmaDefaultEstimate: 500000,
@@ -195,7 +195,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           abrBandWidthFactor: 0.9,
           abrBandWidthUpFactor: 0.7,
           lowLatencyMode: false,
-          backBufferLength: 90,
+          backBufferLength: 30,
           progressive: true,
         });
 
@@ -214,37 +214,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
             hls.startLoad();
 
-            if (videoElement.readyState >= 2) {
-
-              if (shouldBlurNsfw) {
-                videoElement.pause();
-                setIsPlaying(false);
-                return;
-              }
-
-              if (userHasInteracted) {
-                videoElement.muted = false;
-              } else {
-                videoElement.muted = true;
-              }
-              videoElement.play()
-                .then(() => {
-                  setIsPlaying(true);
-
-                })
-                .catch(() => {
-
-                  videoElement.muted = true;
-                  videoElement.play()
-                    .then(() => {
-                      setIsPlaying(true);
-
-                    })
-                    .catch(() => {
-                      console.error("Failed to play after manifest parsed");
-                    });
-                });
+            if (shouldBlurNsfw) {
+              videoElement.pause();
+              setIsPlaying(false);
+              return;
             }
+
+            if (userHasInteracted) {
+              videoElement.muted = false;
+            } else {
+              videoElement.muted = true;
+            }
+
+            videoElement.play()
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch(() => {
+                videoElement.muted = true;
+                videoElement.play()
+                  .then(() => {
+                    setIsPlaying(true);
+                  })
+                  .catch(() => {
+                    console.error("Failed to play after manifest parsed");
+                  });
+              });
           }
         });
 
@@ -379,8 +374,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
             video.muted = true;
 
-            video.load();
-
             video.play().then(() => {
               setIsPlaying(true);
 
@@ -392,23 +385,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           }
         };
 
-        if (video.readyState >= 2) {
+        if (video.readyState >= 1) {
           tryPlay();
         } else {
 
           checkReadyInterval = setInterval(() => {
-            if (video.readyState >= 2) {
+            if (video.readyState >= 1) {
               if (checkReadyInterval) clearInterval(checkReadyInterval);
               tryPlay();
             }
-          }, 20);
+          }, 50);
 
           playTimeout = setTimeout(() => {
             if (checkReadyInterval) clearInterval(checkReadyInterval);
             if (!isPlaying) {
               tryPlay();
             }
-          }, 1000);
+          }, 500);
         }
       } else {
 
