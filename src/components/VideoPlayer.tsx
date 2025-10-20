@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Hls from 'hls.js';
 import { Video } from '@/types';
 import { motion } from 'framer-motion';
-import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline } from 'react-icons/io5';
+import { IoHeartSharp, IoHeartOutline, IoBookmarkSharp, IoBookmarkOutline, IoShareSocialSharp, IoPersonCircleOutline, IoVolumeMuteOutline, IoVolumeHighOutline, IoExpandOutline, IoContractOutline, IoChatbubbleOutline, IoFlagOutline, IoClose, IoEllipsisVertical, IoTrashOutline, IoCopyOutline } from 'react-icons/io5';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '@/contexts/NotificationContext';
 import { interactionAPI } from '@/lib/api';
@@ -55,8 +55,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   const [showBigHeart, setShowBigHeart] = useState(false);
   const [bigHeartPosition, setBigHeartPosition] = useState({ x: 0, y: 0 });
   const [videoProgress, setVideoProgress] = useState(0);
+  const [isDraggingSeekbar, setIsDraggingSeekbar] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<HTMLDivElement>(null);
+  const seekbarRef = useRef<HTMLDivElement>(null);
   const viewTrackedRef = useRef(false);
   const lastTapRef = useRef<number>(0);
   const isOwnVideo = user?.username === video.uploader_username;
@@ -545,6 +547,79 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       }
     }
   };
+
+  const handleCopyEmbed = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const embedCode = `<iframe src="${baseUrl}/kalesh/${video.id}" width="315" height="560" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      showNotification('Embed code copied to clipboard!', 'success');
+    } catch (error) {
+      showNotification('Failed to copy embed code', 'error');
+    }
+  };
+
+  const handleSeekbarClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    if (!videoRef.current || !seekbarRef.current) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const seekbar = seekbarRef.current;
+    const rect = seekbar.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const offsetX = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, offsetX / rect.width));
+
+    videoRef.current.currentTime = percentage * videoRef.current.duration;
+    setVideoProgress(percentage * 100);
+  };
+
+  const handleSeekbarDragStart = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingSeekbar(true);
+    handleSeekbarClick(e);
+  };
+
+  const handleSeekbarDragMove = (e: MouseEvent | TouchEvent) => {
+    if (!isDraggingSeekbar || !videoRef.current || !seekbarRef.current) return;
+
+    const seekbar = seekbarRef.current;
+    const rect = seekbar.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const offsetX = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, offsetX / rect.width));
+
+    videoRef.current.currentTime = percentage * videoRef.current.duration;
+    setVideoProgress(percentage * 100);
+  };
+
+  const handleSeekbarDragEnd = () => {
+    setIsDraggingSeekbar(false);
+  };
+
+  useEffect(() => {
+    if (isDraggingSeekbar) {
+      const handleMove = (e: MouseEvent | TouchEvent) => handleSeekbarDragMove(e);
+      const handleEnd = () => handleSeekbarDragEnd();
+
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchmove', handleMove);
+      document.addEventListener('touchend', handleEnd);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMove);
+        document.removeEventListener('mouseup', handleEnd);
+        document.removeEventListener('touchmove', handleMove);
+        document.removeEventListener('touchend', handleEnd);
+      };
+    }
+  }, [isDraggingSeekbar]);
 
   const handlePressStart = (e: React.TouchEvent | React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -1072,6 +1147,26 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    handleCopyEmbed(e as any);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCopyEmbed(e as any);
+                    setTimeout(() => setShowMoreMenu(false), 100);
+                  }}
+                  className="w-full text-left px-4 py-3 text-white hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                >
+                  <IoCopyOutline size={20} />
+                  Copy Embed
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     toggleFullscreen(e as any);
                     setTimeout(() => setShowMoreMenu(false), 100);
                   }}
@@ -1173,14 +1268,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
 
       {}
-      {isActive && isPlaying && (
-        <div className="fixed bottom-0 left-0 right-0 h-1 bg-white/20 z-[50]">
+      {isActive && (
+        <div
+          ref={seekbarRef}
+          className="fixed bottom-0 left-0 right-0 h-[6px] md:h-1 bg-white/20 z-[80] cursor-pointer group hover:h-2 transition-all duration-200"
+          onClick={handleSeekbarClick}
+          onMouseDown={handleSeekbarDragStart}
+          onTouchStart={handleSeekbarDragStart}
+          style={{ pointerEvents: 'auto' }}
+        >
           <motion.div
-            className="h-full bg-white"
+            className="h-full bg-gradient-to-r from-red-500 to-pink-500 relative"
             initial={{ width: '0%' }}
             animate={{ width: `${videoProgress}%` }}
             transition={{ duration: 0.2, ease: 'linear' }}
-          />
+          >
+            {}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 md:group-hover:scale-110 transition-all duration-200" />
+          </motion.div>
         </div>
       )}
 
