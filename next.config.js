@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  output: 'standalone',
   images: {
+    unoptimized: true,
     domains: ['kalesh.onrender.com', 'cdn.tsuki.page', 'cdn.fly0.tech'],
     remotePatterns: [
       {
@@ -11,7 +13,7 @@ const nextConfig = {
     ],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://kalesh.onrender.com',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.fly0.tech',
   },
   async headers() {
     return [
