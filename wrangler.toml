@@ -1,32 +1,9 @@
 name = "kalesh-frontend"
-type = "javascript"
-account_id = ""
-workers_dev = true
-route = ""
-zone_id = ""
+pages_build_output_dir = ".next"
+
+[build]
+command = "npm run build"
+cwd = "./"
 
 [env.production]
 name = "kalesh-frontend-production"
-routes = [
-  { pattern = "kalesh.me", zone_name = "kalesh.me" }
-]
-
-[build]
-command = "npm install --legacy-peer-deps && npm run build"
-cwd = "./"
-watch_paths = ["src/**/*.ts", "src/**/*.tsx", "public/**/*"]
-
-[build.upload]
-format = "service-worker"
-
-[triggers.crons]
-
-[[unsafe.bindings]]
-name = "ASSETS"
-type = "rpc"
-service = "assets"
-
-[[env.production.unsafe.bindings]]
-name = "ASSETS"
-type = "rpc"
-service = "assets"
