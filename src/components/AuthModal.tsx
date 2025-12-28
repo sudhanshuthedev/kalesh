@@ -63,7 +63,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="bg-app-gray w-full max-w-md p-6 md:p-8 relative"
+          className="bg-app-gray w-full max-w-md p-6 md:p-8 relative rounded-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -84,7 +84,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-black text-white px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+                className="w-full bg-black text-white px-4 py-3 font-poppins rounded-lg outline-none border-0 transition-all"
                 required
                 minLength={3}
                 maxLength={50}
@@ -97,7 +97,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black text-white px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+                className="w-full bg-black text-white px-4 py-3 font-poppins rounded-lg outline-none border-0 transition-all"
                 required
                 minLength={6}
               />
@@ -116,7 +116,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-white text-black py-3 font-poppins font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white text-black py-3 font-poppins font-semibold rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Please wait...' : isLogin ? 'Login' : 'Register'}
             </button>

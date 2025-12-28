@@ -183,7 +183,7 @@ export default function EditProfilePage() {
             <input
               type="text"
               value={user?.username || ''}
-              className="w-full bg-gray-800 px-4 py-3 font-poppins focus:outline-none text-gray-500 cursor-not-allowed"
+              className="w-full bg-gray-800 px-4 py-3 font-poppins outline-none border-0 text-gray-500 cursor-not-allowed rounded-lg"
               disabled
             />
             <p className="text-gray-500 font-poppins text-xs mt-1">Username cannot be changed</p>
@@ -196,7 +196,7 @@ export default function EditProfilePage() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+              className="w-full bg-app-gray px-4 py-3 font-poppins outline-none border-0 transition-all rounded-lg"
               placeholder="Enter your full name"
               maxLength={100}
             />
@@ -209,7 +209,7 @@ export default function EditProfilePage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+              className="w-full bg-app-gray px-4 py-3 font-poppins outline-none border-0 transition-all rounded-lg"
               placeholder="Enter your email"
             />
           </div>
@@ -220,7 +220,7 @@ export default function EditProfilePage() {
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full bg-app-gray px-4 py-3 font-poppins h-32 resize-none focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+              className="w-full bg-app-gray px-4 py-3 font-poppins h-32 resize-none outline-none border-0 transition-all rounded-lg"
               placeholder="Tell us about yourself"
               maxLength={500}
             />
@@ -291,14 +291,14 @@ export default function EditProfilePage() {
           <div className="flex gap-3">
             <Link
               href={`/profile/${user?.username}`}
-              className="flex-1 bg-gray-700 text-white py-3 font-poppins font-semibold hover:bg-gray-600 transition-colors text-center"
+              className="flex-1 bg-gray-700 text-white py-3 font-poppins font-semibold hover:bg-gray-600 transition-colors text-center rounded-lg"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={isUploading}
-              className="flex-1 bg-white text-black py-3 font-poppins font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-white text-black py-3 font-poppins font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
               {isUploading ? 'Saving...' : 'Save Changes'}
             </button>

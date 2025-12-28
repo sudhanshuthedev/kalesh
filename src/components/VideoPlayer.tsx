@@ -185,18 +185,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
           startLevel: -1,
           autoStartLoad: true,
           capLevelToPlayerSize: true,
-          maxBufferLength: 2,
-          maxMaxBufferLength: 10,
+
+          maxBufferLength: 8,
+          maxMaxBufferLength: 16,
           maxBufferSize: 60 * 1000 * 1000,
           maxBufferHole: 0.5,
-          abrEwmaDefaultEstimate: 500000,
+
+          abrEwmaDefaultEstimate: 1000000,
           abrEwmaFastLive: 3.0,
           abrEwmaSlowLive: 9.0,
           abrBandWidthFactor: 0.9,
           abrBandWidthUpFactor: 0.7,
+
           lowLatencyMode: true,
-          backBufferLength: 5,
+          backBufferLength: 8,
           progressive: true,
+
+          startFragPrefetch: true,
+          testBandwidth: false,
         });
 
         hlsRef.current = hls;
@@ -769,8 +775,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full snap-start snap-always bg-black overflow-hidden"
+      className="relative w-full md:w-[calc(100vh*9/16)] bg-black overflow-hidden flex items-center justify-center snap-start snap-always md:mx-auto"
       style={{
+        aspectRatio: '9/16',
         pointerEvents: (showCommentsModal || showMoreMenu || showDeleteModal) ? 'none' : 'auto',
         scrollSnapStop: 'always'
       }}
@@ -778,7 +785,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
       <video
         ref={videoRef}
-        className={`w-full h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
+        className={`w-full h-full object-cover ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
         loop
         playsInline
         muted
@@ -1354,7 +1361,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ videoId, onClose }) => {
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-white/20"
+              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded-lg outline-none border-0"
               required
             >
               <option value="">Select a reason</option>
@@ -1370,7 +1377,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ videoId, onClose }) => {
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               placeholder="Provide more information..."
-              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[100px] resize-none"
+              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded-lg outline-none border-0 min-h-[100px] resize-none"
               maxLength={1000}
             />
           </div>
@@ -1379,14 +1386,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ videoId, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-700 text-white font-poppins py-2 rounded hover:bg-gray-600 transition-colors"
+              className="flex-1 bg-gray-700 text-white font-poppins py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!reason || isSubmitting}
-              className="flex-1 bg-red-500 text-white font-poppins py-2 rounded hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-500 text-white font-poppins py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Report'}
             </button>

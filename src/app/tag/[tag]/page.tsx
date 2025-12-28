@@ -160,7 +160,11 @@ function TagPageContent() {
           key={`video-${video.id}`}
           video={video}
           isActive={index === activeVideoIndex}
-          shouldPreload={index === activeVideoIndex + 1 || index === activeVideoIndex + 2}
+          shouldPreload={
+            index === activeVideoIndex + 1 ||
+            index === activeVideoIndex + 2 ||
+            index === activeVideoIndex - 1
+          }
         />
       ))}
       {isLoading && videos.length > 0 && (

@@ -317,7 +317,7 @@ export default function UploadPage() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full bg-app-gray p-8 flex flex-col items-center justify-center transition-all hover:bg-opacity-80"
+              className="w-full bg-app-gray p-8 flex flex-col items-center justify-center transition-all hover:bg-opacity-80 rounded-lg"
             >
               {videoFile ? (
                 <>
@@ -331,7 +331,7 @@ export default function UploadPage() {
                 <>
                   <IoCloudUploadOutline size={48} className="text-gray-400 mb-2" />
                   <p className="font-poppins">Click to select video</p>
-                  <p className="font-poppins text-xs text-gray-400 mt-1">Max 100MB</p>
+                  <p className="font-poppins text-xs text-gray-400 mt-1">Max 200MB</p>
                 </>
               )}
             </button>
@@ -344,7 +344,7 @@ export default function UploadPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+              className="w-full bg-app-gray px-4 py-3 font-poppins outline-none border-0 transition-all rounded-lg"
               placeholder="Enter video title"
               required
             />
@@ -356,7 +356,7 @@ export default function UploadPage() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-app-gray px-4 py-3 font-poppins h-32 resize-none focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+              className="w-full bg-app-gray px-4 py-3 font-poppins h-32 resize-none outline-none border-0 transition-all rounded-lg"
               placeholder="Enter video description"
             />
           </div>
@@ -373,7 +373,7 @@ export default function UploadPage() {
                 {selectedTags.map((tag) => (
                   <div
                     key={tag}
-                    className="flex items-center gap-1 px-3 py-1 bg-white/20 border border-white/30 text-white font-poppins text-sm"
+                    className="flex items-center gap-1 px-3 py-1 bg-white/20 border border-white/30 text-white font-poppins text-sm rounded-full"
                   >
                     #{tag}
                     <button
@@ -397,7 +397,7 @@ export default function UploadPage() {
                 onKeyDown={handleTagInputKeyDown}
                 onFocus={() => setShowSuggestions(suggestedTags.length > 0)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="w-full bg-app-gray px-4 py-3 font-poppins focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-20 transition-all"
+                className="w-full bg-app-gray px-4 py-3 font-poppins outline-none border-0 transition-all rounded-lg"
                 placeholder="Type to search tags or press Enter to add"
                 disabled={selectedTags.length >= 10}
               />
@@ -407,7 +407,7 @@ export default function UploadPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-full left-0 right-0 mt-1 bg-app-gray border border-white/20 z-10 max-h-48 overflow-y-auto"
+                  className="absolute top-full left-0 right-0 mt-1 bg-app-gray border border-white/20 z-10 max-h-48 overflow-y-auto rounded-lg"
                 >
                   {suggestedTags.map((item) => (
                     <button
@@ -435,7 +435,7 @@ export default function UploadPage() {
                       type="button"
                       onClick={() => addTag(item.tag)}
                       disabled={selectedTags.includes(item.tag) || selectedTags.length >= 10}
-                      className="px-2 py-1 bg-white/10 border border-white/20 text-white font-poppins text-xs hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-2 py-1 bg-white/10 border border-white/20 text-white font-poppins text-xs hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
                     >
                       #{item.tag}
                     </button>
@@ -472,7 +472,7 @@ export default function UploadPage() {
           <button
             type="submit"
             disabled={isUploading || !videoFile || !title}
-            className="w-full bg-white text-black py-3 font-poppins font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white text-black py-3 font-poppins font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
           >
             {isUploading ? 'Uploading...' : 'Upload Video'}
           </button>

@@ -13,7 +13,8 @@ function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [videos, setVideos] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeVideoIndex, setActiveVideoIndex] = useState(0);
@@ -45,6 +46,7 @@ function HomeContent() {
 
     const switchFeed = async () => {
       setIsTransitioning(true);
+      setInitialLoadDone(false);
 
       await new Promise(resolve => setTimeout(resolve, 200));
 
@@ -146,6 +148,7 @@ function HomeContent() {
       console.error('Failed to load videos:', error);
     } finally {
       setIsLoading(false);
+      setInitialLoadDone(true);
       loadingRef.current = false;
     }
   }, [feedType]);
@@ -172,15 +175,32 @@ function HomeContent() {
     }
   }, [activeVideoIndex, videos.length, hasMore, loadVideos, showFeedSelector]);
 
-  return videos.length === 0 ? (
-    <div className="h-screen flex items-center justify-center bg-black">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        className="w-12 h-12 border-4 border-white border-t-transparent rounded-full"
-      />
-    </div>
-  ) : (
+  if (isLoading && !initialLoadDone) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-black">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-12 h-12 border-4 border-white border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
+
+  if (videos.length === 0 && initialLoadDone) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-black px-4">
+        <p className="text-white font-poppins text-lg text-center">
+          No videos found
+        </p>
+        <p className="text-gray-400 font-poppins text-sm text-center mt-2">
+          Be the first to upload a video!
+        </p>
+      </div>
+    );
+  }
+
+  return (
     <>
       {}
       <motion.div
@@ -239,7 +259,11 @@ function HomeContent() {
             key={`video-${video.id}`}
             video={video}
             isActive={index === activeVideoIndex}
-            shouldPreload={index === activeVideoIndex + 1 || index === activeVideoIndex + 2}
+            shouldPreload={
+              index === activeVideoIndex + 1 ||
+              index === activeVideoIndex + 2 ||
+              index === activeVideoIndex - 1
+            }
           />
         ))}
         {isLoading && videos.length > 0 && (

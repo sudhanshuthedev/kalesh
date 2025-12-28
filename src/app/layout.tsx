@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -13,13 +13,18 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#000000',
+};
+
 export const metadata: Metadata = {
   title: 'Kalesh - Watch Kaleshi Videos',
   description: 'Watch and share Kaleshi videos - The ultimate video platform for trending content',
   keywords: 'Kalesh, Kaleshi, videos, watch videos, share videos, video platform, trending videos, viral videos',
   authors: [{ name: 'Kalesh' }],
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
-  themeColor: '#000000',
   openGraph: {
     title: 'Kalesh - Watch Kaleshi Videos',
     description: 'Watch and share Kaleshi videos - The ultimate video platform for trending content',

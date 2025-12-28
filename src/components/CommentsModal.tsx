@@ -382,7 +382,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       placeholder="Add a comment..."
-                      className="flex-1 bg-gray-800 text-white font-poppins text-base px-4 py-2.5 rounded-full focus:outline-none focus:ring-2 focus:ring-white/20"
+                      className="flex-1 bg-gray-800 text-white font-poppins text-base px-4 py-2.5 rounded-full outline-none border-0"
                       maxLength={1000}
                       autoComplete="off"
                       inputMode="text"
@@ -484,7 +484,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       placeholder="Add a comment..."
-                      className="flex-1 bg-gray-800 text-white font-poppins text-sm px-4 py-3 rounded-full focus:outline-none focus:ring-2 focus:ring-white/20"
+                      className="flex-1 bg-gray-800 text-white font-poppins text-sm px-4 py-3 rounded-full outline-none border-0"
                       maxLength={1000}
                       style={{ pointerEvents: 'auto' }}
                     />
@@ -594,7 +594,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-white/20"
+              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded-lg outline-none border-0"
               required
             >
               <option value="">Select a reason</option>
@@ -610,7 +610,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
               value={details}
               onChange={(e) => setDetails(e.target.value)}
               placeholder="Provide more information..."
-              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-white/20 min-h-[100px] resize-none"
+              className="w-full bg-gray-800 text-white font-poppins text-sm px-4 py-2 rounded-lg outline-none border-0 min-h-[100px] resize-none"
               maxLength={1000}
             />
           </div>
@@ -619,14 +619,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-700 text-white font-poppins py-2 rounded hover:bg-gray-600 transition-colors"
+              className="flex-1 bg-gray-700 text-white font-poppins py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!reason || isSubmitting}
-              className="flex-1 bg-red-500 text-white font-poppins py-2 rounded hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-500 text-white font-poppins py-2 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Report'}
             </button>
