@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  output: 'standalone',
   images: {
-    unoptimized: true,
     domains: ['kalesh.onrender.com', 'cdn.tsuki.page', 'cdn.fly0.tech'],
     remotePatterns: [
       {
