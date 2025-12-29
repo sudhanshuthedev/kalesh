@@ -771,15 +771,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-black overflow-hidden snap-start snap-always"
+      className="relative w-full h-screen bg-black overflow-hidden snap-start snap-always flex items-center justify-center"
       style={{
         pointerEvents: (showCommentsModal || showMoreMenu || showDeleteModal) ? 'none' : 'auto',
         scrollSnapStop: 'always'
       }}
     >
-      <video
-        ref={videoRef}
-        className={`absolute inset-0 w-full h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
+      {/* Mobile-style container - 9:16 aspect ratio centered on desktop */}
+      <div className="relative w-full h-full md:h-full md:w-auto md:aspect-[9/16] bg-black">
+        <video
+          ref={videoRef}
+          className={`absolute inset-0 w-full h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
         loop
         playsInline
         muted
@@ -794,9 +796,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             setIsLoading(false);
           }
         }}
-        preload={isActive || shouldPreload ? "auto" : "none"}
-        crossOrigin="anonymous"
-      />
+          preload={isActive || shouldPreload ? "auto" : "none"}
+          crossOrigin="anonymous"
+        />
+      </div>
 
       {}
       {shouldBlurNsfw && (
