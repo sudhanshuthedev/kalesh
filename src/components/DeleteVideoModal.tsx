@@ -80,7 +80,7 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="bg-app-gray w-full max-w-md p-6 md:p-8 relative"
+          className="bg-app-gray w-full max-w-md p-6 md:p-8 relative rounded-lg"
           onClick={(e) => e.stopPropagation()}
           style={{ pointerEvents: 'auto' }}
         >
@@ -127,7 +127,7 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
               type="button"
               onClick={handleCancel}
               disabled={isDeleting}
-              className="flex-1 bg-gray-700 text-white py-3 font-poppins font-semibold hover:bg-gray-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gray-700 text-white py-3 font-poppins font-semibold hover:bg-gray-200 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
               Cancel
             </button>
@@ -135,7 +135,7 @@ const DeleteVideoModal: React.FC<DeleteVideoModalProps> = ({
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="flex-1 bg-red-600 text-white py-3 font-poppins font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-600 text-white py-3 font-poppins font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
             >
               {isDeleting ? 'Deleting...' : 'Delete'}
             </button>

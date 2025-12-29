@@ -330,10 +330,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   useEffect(() => {
     if (isActive) {
       playAttemptedRef.current = false;
-
-      if (videoRef.current) {
-        setShowMuteHint(videoRef.current.muted);
-      }
     } else {
       setShowMuteHint(false);
     }
@@ -775,9 +771,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   return (
     <div
       ref={containerRef}
-      className="relative w-full md:w-[calc(100vh*9/16)] bg-black overflow-hidden flex items-center justify-center snap-start snap-always md:mx-auto"
+      className="relative w-full bg-black overflow-hidden snap-start snap-always"
       style={{
-        aspectRatio: '9/16',
+        aspectRatio: 'auto',
+        maxHeight: '100vh',
         pointerEvents: (showCommentsModal || showMoreMenu || showDeleteModal) ? 'none' : 'auto',
         scrollSnapStop: 'always'
       }}
@@ -785,7 +782,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
       <video
         ref={videoRef}
-        className={`w-full h-full object-cover ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
+        width="100%"
+        height="100%"
+        className={`w-full h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
         loop
         playsInline
         muted
