@@ -133,7 +133,7 @@ export default function UploadPage() {
 
           if (status === 'completed') {
             setTimeout(() => {
-              router.push('/');
+              router.push(`/kalesh/${uploadedVideoId}`);
             }, 2000);
           }
         }
@@ -231,7 +231,7 @@ export default function UploadPage() {
             </motion.div>
             <h2 className="text-white font-poppins text-2xl font-bold mb-2">Video Ready!</h2>
             <p className="text-gray-400 font-poppins">Your video has been processed successfully</p>
-            <p className="text-gray-500 font-poppins text-sm mt-2">Redirecting to home...</p>
+            <p className="text-gray-500 font-poppins text-sm mt-2">Redirecting to video...</p>
           </>
         ) : processingStatus === 'failed' ? (
           <>
