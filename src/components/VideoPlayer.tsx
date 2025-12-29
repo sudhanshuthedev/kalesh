@@ -771,10 +771,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   return (
     <div
       ref={containerRef}
-      className="relative w-full bg-black overflow-hidden snap-start snap-always"
+      className="relative w-full h-screen bg-black overflow-hidden snap-start snap-always flex items-center justify-center"
       style={{
-        aspectRatio: 'auto',
-        maxHeight: '100vh',
         pointerEvents: (showCommentsModal || showMoreMenu || showDeleteModal) ? 'none' : 'auto',
         scrollSnapStop: 'always'
       }}
@@ -782,9 +780,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       {}
       <video
         ref={videoRef}
-        width="100%"
-        height="100%"
-        className={`w-full h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
+        className={`max-w-full max-h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
         loop
         playsInline
         muted
