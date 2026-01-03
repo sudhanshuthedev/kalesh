@@ -18,16 +18,31 @@ body {
     scroll-snap-type: y mandatory;
     overflow-y: scroll;
     height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport height attempt */
     width: 100vw;
     position: fixed;
     top: 0;
     left: 0;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    scroll-behavior: auto !important;
+    transform: translateZ(0);
+    /* Hardware acceleration */
   }
 
   /* Mobile adjustment for bottom nav */
   @media (max-width: 768px) {
     .snap-container {
-      height: calc(100vh - 64px); /* Subtract nav height (h-16 = 64px) */
+      /* Use fallback then dynamic viewport height */
+      height: calc(100vh - 64px);
+      height: calc(100dvh - 64px);
+
+      /* Ensure it never goes behind browser chrome if dvh isn't supported differently */
+      @supports (height: 100svh) {
+        height: calc(100svh - 64px);
+        /* Safe, consistent height */
+      }
     }
   }
 
@@ -39,9 +54,10 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .snap-start {
     height: 100vh;
+    height: 100dvh;
     width: 100%;
     display: flex;
     align-items: center;
@@ -50,7 +66,9 @@ body {
 
   @media (max-width: 768px) {
     .snap-start {
-      height: 100%; /* Match container height on mobile */
+      height: 100%;
+      /* Match container height on mobile */
+      min-height: 100%;
     }
   }
 }
@@ -79,6 +97,7 @@ body {
 
 /* Mobile keyboard fixes */
 @supports (-webkit-touch-callout: none) {
+
   /* iOS specific fixes */
   input[type="text"]:focus,
   textarea:focus {
@@ -88,6 +107,7 @@ body {
 
 /* Prevent zoom on input focus on mobile */
 @media screen and (max-width: 768px) {
+
   input[type="text"],
   textarea {
     font-size: 16px;
@@ -103,4 +123,3 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-

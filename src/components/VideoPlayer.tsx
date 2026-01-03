@@ -777,7 +777,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         scrollSnapStop: 'always'
       }}
     >
-      {}
+      { }
       <div className="relative w-full h-full md:h-full md:w-auto md:aspect-[9/16] bg-black">
         <video
           ref={videoRef}
