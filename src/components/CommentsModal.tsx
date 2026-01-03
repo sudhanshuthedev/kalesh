@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoHeartSharp, IoHeartOutline, IoPersonCircleOutline, IoSendSharp, IoTrashOutline, IoFlagOutline } from 'react-icons/io5';
 import { Comment } from '@/types';
@@ -26,6 +27,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
   const { isAuthenticated, user } = useAuth();
   const { addModal, removeModal } = useModal();
   const { showNotification, showConfirm } = useNotification();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen && videoId) {
@@ -276,14 +282,14 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
     </div>
   );
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <>
       <AnimatePresence>
         {isOpen && (
           <>
-            {}
+            { }
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -296,7 +302,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               }}
             />
 
-            {}
+            { }
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -311,12 +317,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                 touchAction: 'auto'
               }}
             >
-              {}
+              { }
               <div className="w-full flex justify-center pt-2 pb-3">
                 <div className="w-12 h-1 bg-gray-600 rounded-full" />
               </div>
 
-              {}
+              { }
               <div className="flex items-center justify-between px-4 pb-3 border-b border-gray-700">
                 <h2 className="font-poppins font-semibold text-white text-lg">Comments</h2>
                 <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -324,7 +330,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                 </button>
               </div>
 
-              {}
+              { }
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {isLoading ? (
                   <div className="flex justify-center py-8">
@@ -343,7 +349,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                 )}
               </div>
 
-              {}
+              { }
               {isAuthenticated ? (
                 <div
                   className="border-t border-gray-700 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-app-gray"
@@ -398,7 +404,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                       disabled={!commentText.trim()}
                       onMouseDown={(e) => e.preventDefault()}
                       onTouchStart={(e) => e.preventDefault()}
-                      className="bg-white text-black p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed active:scale-90 transition-transform flex-shrink-0"
+                      className="bg-white text-black p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform flex-shrink-0"
                       style={{
                         pointerEvents: 'auto',
                         touchAction: 'manipulation'
@@ -415,7 +421,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
               )}
             </motion.div>
 
-            {}
+            { }
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -427,7 +433,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                 pointerEvents: 'auto'
               }}
             >
-              {}
+              { }
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
                 <h2 className="font-poppins font-semibold text-white text-xl">Comments</h2>
                 <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -435,7 +441,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                 </button>
               </div>
 
-              {}
+              { }
               <div className="flex-1 overflow-y-auto px-6 py-4">
                 {isLoading ? (
                   <div className="flex justify-center py-8">
@@ -454,7 +460,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
                 )}
               </div>
 
-              {}
+              { }
               {isAuthenticated ? (
                 <div
                   className="border-t border-gray-700 p-6"
@@ -508,7 +514,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
         )}
       </AnimatePresence>
 
-      {}
+      { }
       {showReportModal && (
         <ReportModal
           type={showReportModal.type}
@@ -516,7 +522,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ videoId, isOpen, onClose 
           onClose={() => setShowReportModal(null)}
         />
       )}
-    </>
+    </>,
+    document.body
   );
 };
 
@@ -638,4 +645,3 @@ const ReportModal: React.FC<ReportModalProps> = ({ type, id, onClose }) => {
 };
 
 export default CommentsModal;
-
