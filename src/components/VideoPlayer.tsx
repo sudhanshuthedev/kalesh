@@ -926,7 +926,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       ))}
 
       { }
-      {isActive && video.tags && video.tags.length > 0 && (
+      {video.tags && video.tags.length > 0 && (
         <div className="absolute top-16 md:top-[72px] left-0 right-0 px-4 z-[40]">
           <div
             className={`flex items-center gap-2 ${showAllTags ? 'overflow-x-auto scrollbar-hide' : ''}`}
@@ -987,74 +987,72 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
       { }
 
-      {isActive && (
-        <div className="absolute bottom-6 md:bottom-8 left-0 right-0 md:left-4 md:right-28 pl-4 pr-20 md:px-0 md:p-6 z-[40] pointer-events-none">
-          <div className="max-w-md md:max-w-xl">
-            <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
-              <div className="flex items-center gap-1.5">
-                {video.uploader_profile_image_url ? (
-                  <img
-                    src={video.uploader_profile_image_url}
-                    alt={video.uploader_username}
-                    className="w-[26px] h-[26px] md:w-7 md:h-7 rounded-full object-cover border border-white/20"
-                  />
-                ) : (
-                  <IoPersonCircleOutline size={26} className="text-white md:w-7 md:h-7" />
-                )}
-                <span className="text-white font-poppins font-semibold text-sm md:text-sm">
-                  @{video.uploader_username}
-                </span>
-              </div>
-            </Link>
-            <div>
-              <h3
-                className={`text-white font-poppins text-sm md:text-base font-semibold mb-1 md:mb-1 ${!showFullDescription ? 'line-clamp-1' : ''} pointer-events-auto cursor-pointer`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const shouldShowExpand = video.title.length > 50 || (video.description && video.description.length > 100);
-                  if (shouldShowExpand) {
-                    setShowFullDescription(!showFullDescription);
-                  }
-                }}
-              >
-                {video.title}
-              </h3>
-              {video.description && (
-                <div className="pointer-events-auto">
-                  <p
-                    className={`text-white text-[13px] md:text-sm font-poppins opacity-90 leading-snug md:leading-normal ${!showFullDescription ? 'line-clamp-2' : ''} cursor-pointer`}
+      <div className="absolute bottom-6 md:bottom-8 left-0 right-0 md:left-4 md:right-28 pl-4 pr-20 md:px-0 md:p-6 z-[40] pointer-events-none">
+        <div className="max-w-md md:max-w-xl">
+          <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
+            <div className="flex items-center gap-1.5">
+              {video.uploader_profile_image_url ? (
+                <img
+                  src={video.uploader_profile_image_url}
+                  alt={video.uploader_username}
+                  className="w-[26px] h-[26px] md:w-7 md:h-7 rounded-full object-cover border border-white/20"
+                />
+              ) : (
+                <IoPersonCircleOutline size={26} className="text-white md:w-7 md:h-7" />
+              )}
+              <span className="text-white font-poppins font-semibold text-sm md:text-sm">
+                @{video.uploader_username}
+              </span>
+            </div>
+          </Link>
+          <div>
+            <h3
+              className={`text-white font-poppins text-sm md:text-base font-semibold mb-1 md:mb-1 ${!showFullDescription ? 'line-clamp-1' : ''} pointer-events-auto cursor-pointer`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const shouldShowExpand = video.title.length > 50 || (video.description && video.description.length > 100);
+                if (shouldShowExpand) {
+                  setShowFullDescription(!showFullDescription);
+                }
+              }}
+            >
+              {video.title}
+            </h3>
+            {video.description && (
+              <div className="pointer-events-auto">
+                <p
+                  className={`text-white text-[13px] md:text-sm font-poppins opacity-90 leading-snug md:leading-normal ${!showFullDescription ? 'line-clamp-2' : ''} cursor-pointer`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (video.description && (video.description.length > 100 || video.title.length > 50)) {
+                      setShowFullDescription(!showFullDescription);
+                    }
+                  }}
+                >
+                  {video.description}
+                </p>
+                {(video.description.length > 100 || video.title.length > 50) && (
+                  <button
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (video.description && (video.description.length > 100 || video.title.length > 50)) {
-                        setShowFullDescription(!showFullDescription);
-                      }
+                      setShowFullDescription(!showFullDescription);
                     }}
+                    className="text-white text-xs md:text-xs font-poppins font-semibold mt-1 md:mt-1 opacity-75 hover:opacity-100 active:scale-95 transition-all"
                   >
-                    {video.description}
-                  </p>
-                  {(video.description.length > 100 || video.title.length > 50) && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowFullDescription(!showFullDescription);
-                      }}
-                      className="text-white text-xs md:text-xs font-poppins font-semibold mt-1 md:mt-1 opacity-75 hover:opacity-100 active:scale-95 transition-all"
-                    >
-                      {showFullDescription ? 'Show less' : 'Show more'}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+                    {showFullDescription ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       { }
-      {isActive && !showCommentsModal && (
+      {!showCommentsModal && (
         <div className="absolute right-3 md:right-6 bottom-24 md:bottom-8 flex flex-col gap-5 md:gap-6 z-[40] pointer-events-auto">
           <button
             type="button"
@@ -1267,26 +1265,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
       { }
 
       { }
-      {isActive && (
-        <div
-          ref={seekbarRef}
-          className="absolute bottom-0 left-0 right-0 h-[6px] md:h-1 bg-white/20 z-[80] cursor-pointer group hover:h-2 transition-all duration-200"
-          onClick={handleSeekbarClick}
-          onMouseDown={handleSeekbarDragStart}
-          onTouchStart={handleSeekbarDragStart}
-          style={{ pointerEvents: 'auto' }}
+      <div
+        ref={seekbarRef}
+        className="absolute bottom-0 left-0 right-0 h-[6px] md:h-1 bg-white/20 z-[80] cursor-pointer group hover:h-2 transition-all duration-200"
+        onClick={handleSeekbarClick}
+        onMouseDown={handleSeekbarDragStart}
+        onTouchStart={handleSeekbarDragStart}
+        style={{ pointerEvents: 'auto' }}
+      >
+        <motion.div
+          className="h-full bg-gradient-to-r from-red-500 to-pink-500 relative"
+          initial={{ width: '0%' }}
+          animate={{ width: `${videoProgress}%` }}
+          transition={{ duration: 0.2, ease: 'linear' }}
         >
-          <motion.div
-            className="h-full bg-gradient-to-r from-red-500 to-pink-500 relative"
-            initial={{ width: '0%' }}
-            animate={{ width: `${videoProgress}%` }}
-            transition={{ duration: 0.2, ease: 'linear' }}
-          >
-            { }
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 md:group-hover:scale-110 transition-all duration-200" />
-          </motion.div>
-        </div>
-      )}
+          { }
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 md:group-hover:scale-110 transition-all duration-200" />
+        </motion.div>
+      </div>
 
     </div>
   );
