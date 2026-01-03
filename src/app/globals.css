@@ -29,6 +29,7 @@ body {
     scroll-behavior: auto !important;
     transform: translateZ(0);
     /* Hardware acceleration */
+    will-change: scroll-position;
   }
 
   /* Mobile adjustment for bottom nav */
@@ -62,6 +63,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Performance optimizations for list scrolling */
+    content-visibility: auto;
+    contain-intrinsic-size: 100vh;
+    /* Prevents scrollbar jumping */
   }
 
   @media (max-width: 768px) {
@@ -69,6 +74,7 @@ body {
       height: 100%;
       /* Match container height on mobile */
       min-height: 100%;
+      contain-intrinsic-size: calc(100vh - 64px);
     }
   }
 }
