@@ -16,7 +16,7 @@ body {
 @layer utilities {
   .snap-container {
     scroll-snap-type: y mandatory;
-    overflow-y: auto;
+    overflow-y: scroll;
     height: 100vh;
     height: 100dvh;
     /* Dynamic viewport height attempt */
@@ -29,7 +29,6 @@ body {
     scroll-behavior: auto !important;
     transform: translateZ(0);
     /* Hardware acceleration */
-    will-change: scroll-position;
   }
 
   /* Mobile adjustment for bottom nav */
@@ -63,8 +62,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
 
   @media (max-width: 768px) {
