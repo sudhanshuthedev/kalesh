@@ -24,6 +24,13 @@ body {
     left: 0;
   }
 
+  /* Mobile adjustment for bottom nav */
+  @media (max-width: 768px) {
+    .snap-container {
+      height: calc(100vh - 64px); /* Subtract nav height (h-16 = 64px) */
+    }
+  }
+
   .snap-container::-webkit-scrollbar {
     display: none;
   }
@@ -39,6 +46,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .snap-start {
+      height: 100%; /* Match container height on mobile */
+    }
   }
 }
 

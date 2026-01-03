@@ -758,7 +758,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
 
         videoRef.current.play()
           .then(() => setIsPlaying(true))
-          .catch(() => {});
+          .catch(() => { });
       }
     }
   }, [shouldBlurNsfw, isActive, isPlaying]);
@@ -771,42 +771,42 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-black overflow-hidden snap-start snap-always flex items-center justify-center"
+      className="relative w-full h-full bg-black overflow-hidden snap-start snap-always flex items-center justify-center"
       style={{
         pointerEvents: (showCommentsModal || showMoreMenu || showDeleteModal) ? 'none' : 'auto',
         scrollSnapStop: 'always'
       }}
     >
-      {/* Mobile-style container - 9:16 aspect ratio centered on desktop */}
+      {}
       <div className="relative w-full h-full md:h-full md:w-auto md:aspect-[9/16] bg-black">
         <video
           ref={videoRef}
           className={`absolute inset-0 w-full h-full object-contain ${shouldBlurNsfw ? 'blur-2xl' : ''}`}
-        loop
-        playsInline
-        muted
-        poster={video.thumbnail_url || undefined}
-        onLoadedData={() => {
-          if (isLoading) {
-            setIsLoading(false);
-          }
-        }}
-        onCanPlay={() => {
-          if (isLoading) {
-            setIsLoading(false);
-          }
-        }}
+          loop
+          playsInline
+          muted
+          poster={video.thumbnail_url || undefined}
+          onLoadedData={() => {
+            if (isLoading) {
+              setIsLoading(false);
+            }
+          }}
+          onCanPlay={() => {
+            if (isLoading) {
+              setIsLoading(false);
+            }
+          }}
           preload={isActive || shouldPreload ? "auto" : "none"}
           crossOrigin="anonymous"
         />
       </div>
 
-      {}
+      { }
       {shouldBlurNsfw && (
         <div className="absolute inset-0 flex items-center justify-center z-[60] bg-black/50">
           <div className="text-center px-6">
-             <h2 className="text-6xl font-poppins font-bold text-red-500 mb-4">18+</h2>
-             <p className="text-white font-poppins text-lg mb-6">This content might disturb you</p>
+            <h2 className="text-6xl font-poppins font-bold text-red-500 mb-4">18+</h2>
+            <p className="text-white font-poppins text-lg mb-6">This content might disturb you</p>
             <button
               onClick={() => setShowNsfwContent(true)}
               className="text-white font-poppins text-base hover:text-gray-300 transition-colors underline mb-4"
@@ -824,12 +824,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         </div>
       )}
 
-      {}
+      { }
       {!showCommentsModal && !showReportModal && !showMoreMenu && !showDeleteModal && (
         <div
           ref={interactionLayerRef}
           className="absolute left-0 right-0 z-10"
-          style={{ top: '56px', bottom: '64px', touchAction: 'pan-y' }}
+          style={{ top: '56px', bottom: '0px', touchAction: 'pan-y' }}
           onMouseDown={handlePressStart}
           onMouseUp={handlePressEnd}
           onClick={handleDoubleTap}
@@ -847,7 +847,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         />
       )}
 
-      {}
+      { }
       {isLoading && isActive && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-[60] pointer-events-none">
           <motion.div
@@ -858,48 +858,48 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         </div>
       )}
 
-      {}
+      { }
 
-      {}
+      { }
       {showMuteHint && isPlaying && videoRef.current && videoRef.current.muted && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed top-16 right-4 md:top-20 md:right-6 z-[60] pointer-events-none flex flex-col items-center gap-1"
+          className="absolute top-16 right-4 md:top-20 md:right-6 z-[60] pointer-events-none flex flex-col items-center gap-1"
         >
           <IoVolumeMuteOutline size={32} className="text-white drop-shadow-2xl" />
           <p className="text-white font-poppins text-xs drop-shadow-2xl">Click to unmute</p>
         </motion.div>
       )}
 
-      {}
+      { }
       {showMutedIcon && (
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5 }}
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-none"
         >
           <IoVolumeHighOutline size={60} className="text-white drop-shadow-2xl" />
         </motion.div>
       )}
 
-      {}
+      { }
       {showBigHeart && (
         <motion.div
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 1.3 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="fixed z-[60] pointer-events-none -translate-x-1/2 -translate-y-1/2"
+          className="absolute z-[60] pointer-events-none -translate-x-1/2 -translate-y-1/2"
           style={{ left: `${bigHeartPosition.x}px`, top: `${bigHeartPosition.y}px` }}
         >
           <IoHeartSharp size={100} className="text-red-500 drop-shadow-2xl" />
         </motion.div>
       )}
 
-      {}
+      { }
       {hearts.map((heart) => (
         <motion.div
           key={heart.id}
@@ -911,7 +911,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             x: [(Math.random() - 0.5) * 30]
           }}
           transition={{ duration: 1, ease: 'easeOut' }}
-          className="fixed z-[60] pointer-events-none"
+          className="absolute z-[60] pointer-events-none"
           style={{ left: `${heart.x}px`, top: `${heart.y}px` }}
         >
           <IoHeartSharp
@@ -925,9 +925,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         </motion.div>
       ))}
 
-      {}
+      { }
       {isActive && video.tags && video.tags.length > 0 && (
-        <div className="fixed top-16 md:top-[72px] left-0 right-0 px-4 z-[40]">
+        <div className="absolute top-16 md:top-[72px] left-0 right-0 px-4 z-[40]">
           <div
             className={`flex items-center gap-2 ${showAllTags ? 'overflow-x-auto scrollbar-hide' : ''}`}
             style={{
@@ -985,10 +985,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         </div>
       )}
 
-      {}
+      { }
 
       {isActive && (
-        <div className="fixed md:absolute bottom-24 md:bottom-8 left-0 right-0 md:left-4 md:right-28 px-4 md:px-0 md:p-6 z-[40] pointer-events-none">
+        <div className="absolute bottom-6 md:bottom-8 left-0 right-0 md:left-4 md:right-28 pl-4 pr-20 md:px-0 md:p-6 z-[40] pointer-events-none">
           <div className="max-w-md md:max-w-xl">
             <Link href={`/profile/${video.uploader_username}`} className="inline-block mb-1.5 md:mb-1.5 pointer-events-auto">
               <div className="flex items-center gap-1.5">
@@ -1053,9 +1053,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         </div>
       )}
 
-      {}
+      { }
       {isActive && !showCommentsModal && (
-        <div className="fixed md:absolute right-3 md:right-6 bottom-40 md:bottom-8 flex flex-col gap-5 md:gap-6 z-[40] pointer-events-auto">
+        <div className="absolute right-3 md:right-6 bottom-24 md:bottom-8 flex flex-col gap-5 md:gap-6 z-[40] pointer-events-auto">
           <button
             type="button"
             onClick={handleLike}
@@ -1202,35 +1202,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
                     Delete Video
                   </button>
                 ) : (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!isAuthenticated) {
-                      showNotification('Please login to report videos', 'info');
-                      setShowMoreMenu(false);
-                      return;
-                    }
-                    setShowReportModal(true);
-                    setTimeout(() => setShowMoreMenu(false), 100);
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!isAuthenticated) {
-                      showNotification('Please login to report videos', 'info');
-                      setShowMoreMenu(false);
-                      return;
-                    }
-                    setShowReportModal(true);
-                    setTimeout(() => setShowMoreMenu(false), 100);
-                  }}
-                  className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
-                >
-                  <IoFlagOutline size={20} />
-                  Report
-                </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isAuthenticated) {
+                        showNotification('Please login to report videos', 'info');
+                        setShowMoreMenu(false);
+                        return;
+                      }
+                      setShowReportModal(true);
+                      setTimeout(() => setShowMoreMenu(false), 100);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isAuthenticated) {
+                        showNotification('Please login to report videos', 'info');
+                        setShowMoreMenu(false);
+                        return;
+                      }
+                      setShowReportModal(true);
+                      setTimeout(() => setShowMoreMenu(false), 100);
+                    }}
+                    className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10 active:bg-white/20 transition-colors font-poppins text-sm flex items-center gap-3"
+                  >
+                    <IoFlagOutline size={20} />
+                    Report
+                  </button>
                 )}
               </motion.div>
             )}
@@ -1238,7 +1238,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         </div>
       )}
 
-      {}
+      { }
       {showCommentsModal && (
         <CommentsModal
           videoId={video.id}
@@ -1247,7 +1247,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         />
       )}
 
-      {}
+      { }
       {showReportModal && (
         <ReportModal
           videoId={video.id}
@@ -1264,13 +1264,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
         />
       )}
 
-      {}
+      { }
 
-      {}
+      { }
       {isActive && (
         <div
           ref={seekbarRef}
-          className="fixed bottom-0 left-0 right-0 h-[6px] md:h-1 bg-white/20 z-[80] cursor-pointer group hover:h-2 transition-all duration-200"
+          className="absolute bottom-0 left-0 right-0 h-[6px] md:h-1 bg-white/20 z-[80] cursor-pointer group hover:h-2 transition-all duration-200"
           onClick={handleSeekbarClick}
           onMouseDown={handleSeekbarDragStart}
           onTouchStart={handleSeekbarDragStart}
@@ -1282,7 +1282,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ video, isActive, shouldPreloa
             animate={{ width: `${videoProgress}%` }}
             transition={{ duration: 0.2, ease: 'linear' }}
           >
-            {}
+            { }
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 md:group-hover:scale-110 transition-all duration-200" />
           </motion.div>
         </div>
